@@ -8,9 +8,23 @@ from __future__ import annotations
 import argparse
 import os
 import random
+import re
 import sys
 import time
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
+
+def _strip_utm(url: str) -> str:
+    parsed = urlparse(url)
+    cleaned = [(k, v) for k, v in parse_qsl(parsed.query, keep_blank_values=True)
+               if not k.lower().startswith("utm_") and k.lower() not in {"fbclid", "gclid"}]
+    return urlunparse(parsed._replace(query=urlencode(cleaned)))
+
+
+def _clean_post_urls(text: str) -> str:
+    """投稿本文中のURLに残ったUTMを除去する。"""
+    return re.sub(r"https?://\S+", lambda m: _strip_utm(m.group(0)), text)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import crawl_blog  # type: ignore
@@ -69,6 +83,8 @@ def main() -> int:
 
         article = fetch_article.fetch(meta["url"])
         tree = generate_tree.call_claude(article)
+        # 投稿本文中のURLからUTMパラメータを掃除
+        tree["posts"] = [_clean_post_urls(p) for p in tree.get("posts", [])]
 
         image_url = None
         if not args.no_image and random.random() < IMAGE_PROBABILITY:
