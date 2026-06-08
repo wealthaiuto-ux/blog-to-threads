@@ -20,8 +20,10 @@ import maybe_image  # type: ignore
 import notion_draft  # type: ignore
 import pick_article  # type: ignore
 
-# Nano Banana 生成画像を添付する確率（残りはテキストのみ）
-IMAGE_PROBABILITY = 0.5
+# Nano Banana 生成画像を添付する確率（1.0 = 毎回）
+IMAGE_PROBABILITY = 1.0
+# 画像生成のリトライ回数（Nano Bananaが空返答した場合）
+IMAGE_RETRY = 3
 
 
 def _build_raw_url(local_path: Path) -> str | None:
@@ -71,7 +73,16 @@ def main() -> int:
         image_url = None
         if not args.no_image and random.random() < IMAGE_PROBABILITY:
             out = maybe_image.OUT_DIR / f"thread_{int(time.time())}_{i}.png"
-            ok = maybe_image.generate(tree.get("image_prompt") or article["title"], out)
+            ok = False
+            for attempt in range(1, IMAGE_RETRY + 1):
+                ok = maybe_image.generate(
+                    tree.get("image_prompt") or article["title"],
+                    out,
+                    infographic=tree.get("infographic"),
+                )
+                if ok:
+                    break
+                print(f"[image] 失敗 attempt {attempt}/{IMAGE_RETRY} → リトライ")
             if ok:
                 image_url = _build_raw_url(out)
                 if image_url:
@@ -80,7 +91,7 @@ def main() -> int:
                     print("[image] 生成済みだが raw URL を組めない（ローカル実行？）")
                     image_url = None
             else:
-                print("[image] 生成失敗 → 画像なしで続行")
+                print(f"[image] {IMAGE_RETRY}回失敗 → 画像なしで続行")
 
         page_id = notion_draft.save_draft(article, tree["posts"], image_url)
         print(f"[saved] {meta['title'][:40]}... -> page={page_id}")

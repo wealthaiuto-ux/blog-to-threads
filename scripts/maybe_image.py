@@ -1,7 +1,17 @@
-"""30%確率でNano Banana画像を生成。生成パスを返す、しなかったら空文字。
+"""Nano Banana (gemini-3.1-flash-image-preview) でインフォグラフィックを生成する。
 
-GitHub Actions 上ではローカルの ~/.claude/scripts/generate_image.py が無いので、
-直接 Gemini API を叩く実装にしている。リファレンス画像（主人公）も同梱できる。
+戦略:
+  1. assets/style_reference.jpg をスタイル参考として送る（毎回同じレイアウト感を維持）
+  2. assets/character.jpg を主人公キャラ参考として送る
+  3. infographic 構造化データを文字起こしして "exactly this style" と指示
+  4. 失敗（テキストのみ返答など）したら呼び元がリトライする
+
+infographic = {
+  "title": "10〜12字",
+  "subtitle": "15字以内",
+  "bullets": [{"icon": "🛢", "text": "..."}, ...],  # 5要素
+  "cta": "25字以内"
+}
 """
 from __future__ import annotations
 
@@ -9,54 +19,101 @@ import argparse
 import base64
 import json
 import os
-import random
 import sys
 import time
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-IMAGE_PROBABILITY = 0.3
 MODEL = "gemini-3.1-flash-image-preview"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "data" / "generated"
-# 主人公リファレンス：スキル同梱版を優先、無ければ ~/.claude/assets/主人公.JPG
-_BUNDLED_REF = ROOT / "assets" / "character.jpg"
-_LOCAL_REF = Path.home() / ".claude" / "assets" / "主人公.JPG"
-CHARACTER_REF = _BUNDLED_REF if _BUNDLED_REF.exists() else _LOCAL_REF
+ASSETS = ROOT / "assets"
+
+# 主人公リファレンス（bottom-right に配置されるキャラ）
+_BUNDLED_CHAR = ASSETS / "character.jpg"
+_LOCAL_CHAR = Path.home() / ".claude" / "assets" / "主人公.JPG"
+CHARACTER_REF = _BUNDLED_CHAR if _BUNDLED_CHAR.exists() else _LOCAL_CHAR
+
+# スタイルリファレンス（インフォグラフィック全体のレイアウト見本）
+STYLE_REF = ASSETS / "style_reference.jpg"
 
 
-def _load_reference() -> dict | None:
-    if not CHARACTER_REF.exists():
-        return None
-    b = CHARACTER_REF.read_bytes()
+def _inline(path: Path, mime: str = "image/jpeg") -> dict:
     return {
         "inline_data": {
-            "mime_type": "image/jpeg",
-            "data": base64.b64encode(b).decode("ascii"),
+            "mime_type": mime,
+            "data": base64.b64encode(path.read_bytes()).decode("ascii"),
         }
     }
 
 
-def generate(prompt: str, output_path: Path) -> bool:
+def _build_infographic_prompt(infographic: dict) -> str:
+    bullets = infographic.get("bullets", [])
+    bullets_text = "\n".join(
+        f"  Row {i+1}: icon {b.get('icon', '•')}  text \"{b.get('text', '')}\""
+        for i, b in enumerate(bullets)
+    )
+    bullet_count = len(bullets)
+    title = infographic.get("title", "")
+    subtitle = infographic.get("subtitle", "")
+    cta = infographic.get("cta", "")
+    return f"""Create a VERTICAL (4:5 aspect ratio) Japanese infographic poster.
+
+EXACTLY follow the style of the first reference image (navy header, multiple icon rows on white background, orange CTA box at bottom, friendly Japanese male character cutout at bottom-right, small "詳しくはブログで → chanko06.com" footer).
+
+The male character (second reference image) MUST appear in the bottom-right area, smiling and gesturing. Keep his face, hair, outfit identical to the reference.
+
+CONTENT (render Japanese characters CLEARLY and READABLY):
+
+[Header — navy blue band, white large title and orange small subtitle]
+Title: 「{title}」
+Subtitle: 「{subtitle}」
+
+[Body — white background, {bullet_count} rows. Each row: a flat icon on the left and short Japanese text on the right]
+{bullets_text}
+
+[CTA box — orange rounded rectangle near bottom, dark text]
+「{cta}」
+
+[Footer — small gray text, centered below CTA]
+「詳しくはブログで → chanko06.com」
+
+REQUIREMENTS:
+- 4:5 portrait, ~1024x1280
+- Clean flat illustration, pastel/cream background between header and CTA
+- High-contrast, MOBILE-LEGIBLE Japanese text
+- No realistic shading, no photo style
+- All Japanese text must be rendered exactly as specified above
+"""
+
+
+def generate(prompt_fallback: str, output_path: Path, *,
+             infographic: dict | None = None) -> bool:
     api_key = os.environ.get("GOOGLE_AI_API_KEY")
     if not api_key:
         print("GOOGLE_AI_API_KEY 未設定 → 画像生成スキップ", file=sys.stderr)
         return False
 
-    parts: list[dict] = [{"text": (
-        f"{prompt}. flat illustration style, clean lines, soft pastel colors, "
-        "light cream background, Japanese editorial style, no realistic shading."
-    )}]
-    ref = _load_reference()
-    if ref:
-        parts.insert(0, ref)
-        parts[1]["text"] = (
-            "Use the reference image as the main character (same outfit, hair, face). "
-            + parts[1]["text"]
+    parts: list[dict] = []
+    # スタイル参考は最初に
+    if STYLE_REF.exists():
+        parts.append(_inline(STYLE_REF))
+    # 主人公参考
+    if CHARACTER_REF.exists():
+        parts.append(_inline(CHARACTER_REF))
+
+    if infographic and infographic.get("bullets"):
+        text = _build_infographic_prompt(infographic)
+    else:
+        text = (
+            f"Create a vertical (4:5) Japanese infographic poster about: {prompt_fallback}. "
+            "Use the first reference image's exact layout (navy header, 5 icon rows, orange CTA, character bottom-right). "
+            "Flat illustration, mobile-legible Japanese text, no photo style."
         )
+    parts.append({"text": text})
 
     payload = {"contents": [{"parts": parts}]}
     req = Request(
@@ -77,24 +134,24 @@ def generate(prompt: str, output_path: Path) -> bool:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_bytes(base64.b64decode(inline["data"]))
             return True
-    print("Gemini が画像を返さなかった", file=sys.stderr)
+    print("Gemini が画像を返さなかった（テキストのみ）", file=sys.stderr)
     return False
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--prompt", required=True)
-    ap.add_argument("--force", action="store_true", help="確率を無視して必ず生成")
+    ap.add_argument("--prompt", required=True, help="フォールバックプロンプト")
+    ap.add_argument("--infographic", help="infographic JSONファイル")
     args = ap.parse_args()
 
-    if not args.force and random.random() >= IMAGE_PROBABILITY:
-        print("")
-        return 0
+    info = None
+    if args.infographic:
+        info = json.loads(Path(args.infographic).read_text(encoding="utf-8"))
 
     out = OUT_DIR / f"thread_{int(time.time())}.png"
-    ok = generate(args.prompt, out)
+    ok = generate(args.prompt, out, infographic=info)
     print(str(out) if ok else "")
-    return 0
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
