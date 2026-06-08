@@ -51,42 +51,33 @@ def _inline(path: Path, mime: str = "image/jpeg") -> dict:
 
 
 def _build_infographic_prompt(infographic: dict) -> str:
+    """ユーザー指定テンプレートに沿った日本語インフォグラフィックのプロンプトを組み立てる。"""
     bullets = infographic.get("bullets", [])
     bullets_text = "\n".join(
-        f"  Row {i+1}: icon {b.get('icon', '•')}  text \"{b.get('text', '')}\""
+        f'  Step {i+1}: icon hint "{b.get("icon", "•")}", bullet text "{b.get("text", "")}"'
         for i, b in enumerate(bullets)
     )
     bullet_count = len(bullets)
     title = infographic.get("title", "")
     subtitle = infographic.get("subtitle", "")
     cta = infographic.get("cta", "")
-    return f"""Create a VERTICAL (4:5 aspect ratio) Japanese infographic poster.
 
-EXACTLY follow the style of the first reference image (navy header, multiple icon rows on white background, orange CTA box at bottom, friendly Japanese male character cutout at bottom-right, small "詳しくはブログで → chanko06.com" footer).
+    return f"""A vector illustration of a friendly informational infographic poster, in Japanese.
 
-The male character (second reference image) MUST appear in the bottom-right area, smiling and gesturing. Keep his face, hair, outfit identical to the reference.
+Character: On the LEFT side, the SAME young East Asian man shown in the second reference image — short black hair (slightly faded on the sides), wearing a casual light gray suit with a white band-collar shirt underneath. He is smiling warmly and gesturing with his right hand open towards the right side of the image, as if explaining or presenting the information. Keep his face, hair, outfit identical to the reference.
 
-CONTENT (render Japanese characters CLEARLY and READABLY):
+Layout: The right side and center of the image contain structured information panels.
 
-[Header — navy blue band, white large title and orange small subtitle]
-Title: 「{title}」
-Subtitle: 「{subtitle}」
+Top: A bold, eye-catching main title in dark blue and yellow.
+  Main title (Japanese): 「{title}」
+  Sub-headline (Japanese, smaller, yellow accent): 「{subtitle}」
 
-[Body — white background, {bullet_count} rows. Each row: a flat icon on the left and short Japanese text on the right]
+Middle: {bullet_count} rounded rectangular text boxes organized vertically. Each box contains a simple flat-design icon on the left, a large step number (1, 2, 3 ...) and a short Japanese bullet text. Use these contents in order:
 {bullets_text}
 
-[CTA box — orange rounded rectangle near bottom, dark text]
-「{cta}」
+Bottom: A horizontal banner with a calendar icon and the following Japanese call-to-action text: 「{cta}」. Below it, a small footer line: 「詳しくはブログで → chanko06.com」.
 
-[Footer — small gray text, centered below CTA]
-「詳しくはブログで → chanko06.com」
-
-REQUIREMENTS:
-- 4:5 portrait, ~1024x1280
-- Clean flat illustration, pastel/cream background between header and CTA
-- High-contrast, MOBILE-LEGIBLE Japanese text
-- No realistic shading, no photo style
-- All Japanese text must be rendered exactly as specified above
+Background & Style: A light, clean background. The overall style is flat, corporate but friendly, modern, and easy to read. High quality, sharp, no messy text. All Japanese characters must be rendered CLEARLY and READABLY — no scrambled or invented glyphs. Aspect ratio: 4:5 portrait, around 1024x1280.
 """
 
 
@@ -98,10 +89,8 @@ def generate(prompt_fallback: str, output_path: Path, *,
         return False
 
     parts: list[dict] = []
-    # スタイル参考は最初に
-    if STYLE_REF.exists():
-        parts.append(_inline(STYLE_REF))
-    # 主人公参考
+    # キャラクターリファレンス（主人公）を最初に
+    # ※ 過去のスタイルリファレンスは新プロンプトと競合するため送らない
     if CHARACTER_REF.exists():
         parts.append(_inline(CHARACTER_REF))
 
