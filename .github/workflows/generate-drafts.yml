@@ -1,10 +1,11 @@
 name: Generate Threads Drafts
 
-# 毎日 21:00 JST (= 12:00 UTC) に3本分のドラフトを生成 → Notion保存
+# 毎日 21:03 JST (= 12:03 UTC) に3本分のドラフトを生成 → Notion保存
+# UTC ぴったり時刻は混雑で遅延しやすいので 3分ずらしている
 # 翌日の朝/昼/夜の投稿スロット分をまとめて作る
 on:
   schedule:
-    - cron: "0 12 * * *"
+    - cron: "3 12 * * *"
   workflow_dispatch:
     inputs:
       count:
