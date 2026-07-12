@@ -6,13 +6,43 @@ run_post.py が朝/昼/夜のスケジュールで拾って投稿する。
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import random
 import re
 import sys
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
+# ドラフト生成した記事の履歴。投稿されなかった記事も一定期間は再選定しない。
+GEN_LOG_PATH = Path(__file__).resolve().parent.parent / "data" / "generated_log.json"
+GEN_DEDUPE_HOURS = 24 * 7
+
+
+def _load_gen_log() -> list[dict]:
+    if not GEN_LOG_PATH.exists():
+        return []
+    return json.loads(GEN_LOG_PATH.read_text(encoding="utf-8"))
+
+
+def _recently_generated_urls(log: list[dict]) -> set[str]:
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=GEN_DEDUPE_HOURS)
+    urls = set()
+    for entry in log:
+        try:
+            if datetime.fromisoformat(entry["generated_at"]) >= cutoff:
+                urls.add(entry["article_url"])
+        except (KeyError, ValueError):
+            continue
+    return urls
+
+
+def _append_gen_log(url: str) -> None:
+    log = _load_gen_log()
+    log.append({"article_url": url, "generated_at": datetime.now(timezone.utc).isoformat()})
+    GEN_LOG_PATH.write_text(json.dumps(log, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _strip_utm(url: str) -> str:
@@ -68,6 +98,8 @@ def main() -> int:
     print(f"[crawl] {len(items)} articles")
 
     excluded = pick_article.recently_posted_urls(pick_article.load_log())
+    # 投稿済みだけでなく、7日以内にドラフト生成した記事も除外する
+    excluded |= _recently_generated_urls(_load_gen_log())
 
     # 同一バッチ内で切り口が重複しないように割り当てる
     angles = random.sample(generate_tree.ANGLES, min(args.count, len(generate_tree.ANGLES)))
@@ -113,6 +145,7 @@ def main() -> int:
                 print(f"[image] {IMAGE_RETRY}回失敗 → 画像なしで続行")
 
         page_id = notion_draft.save_draft(article, tree["posts"], image_url)
+        _append_gen_log(meta["url"])
         print(f"[saved] {meta['title'][:40]}... -> page={page_id}")
 
     return 0

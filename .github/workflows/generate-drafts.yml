@@ -38,6 +38,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/articles_cache.json data/generated/ || true
+          git add data/articles_cache.json data/generated_log.json data/generated/ || true
           git diff --cached --quiet || git commit -m "drafts: $(date -u +%Y-%m-%dT%H:%MZ)"
           git push || true

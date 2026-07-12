@@ -50,10 +50,17 @@ def fetch_feed(url: str = FEED_URL) -> list[dict]:
 
 
 def save_cache(items: list[dict]) -> None:
+    """RSSはフィード上限（最新10件程度）しか返さないため、上書きではなく蓄積する。
+    新着をフィード順で先頭に、フィードから消えた過去記事を後ろに残す。"""
     CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    feed_urls = {a["url"] for a in items}
+    old_items: list[dict] = []
+    if CACHE_PATH.exists():
+        cached = json.loads(CACHE_PATH.read_text(encoding="utf-8")).get("items", [])
+        old_items = [a for a in cached if a["url"] not in feed_urls]
     payload = {
         "fetched_at": datetime.now(timezone.utc).isoformat(),
-        "items": items,
+        "items": items + old_items,
     }
     CACHE_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
