@@ -69,6 +69,9 @@ def main() -> int:
 
     excluded = pick_article.recently_posted_urls(pick_article.load_log())
 
+    # 同一バッチ内で切り口が重複しないように割り当てる
+    angles = random.sample(generate_tree.ANGLES, min(args.count, len(generate_tree.ANGLES)))
+
     for i in range(args.count):
         if args.article_url and i == 0:
             meta = next((a for a in items if a["url"] == args.article_url), None)
@@ -82,7 +85,7 @@ def main() -> int:
             excluded.add(meta["url"])
 
         article = fetch_article.fetch(meta["url"])
-        tree = generate_tree.call_claude(article)
+        tree = generate_tree.call_claude(article, angle=angles[i % len(angles)])
         # 投稿本文中のURLからUTMパラメータを掃除
         tree["posts"] = [_clean_post_urls(p) for p in tree.get("posts", [])]
 
