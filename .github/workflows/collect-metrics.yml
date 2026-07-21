@@ -1,0 +1,51 @@
+name: Collect Threads Metrics
+
+# 毎日 15:00 JST (= 06:00 UTC)
+#
+# フォロワー数は「その時点の値」しか取れず、過去に遡れない。
+# 生成・投稿を停止している間もこのジョブだけは動かし続けること。
+# 記録を始めた日が観測の起点になるため、止めるとその期間は永久に空白になる。
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Snapshot followers
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+        run: |
+          python scripts/snapshot_followers.py
+
+      - name: Commit snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/followers.json || true
+          git diff --cached --quiet || git commit -m "followers: $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push || true
+
+      # 計測が静かに止まると、後から取り返せないデータが失われる。
+      - name: Notify on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          body=$(printf 'フォロワー数の日次スナップショットが失敗しました。\n\n実行ログ: %s\n\nフォロワー数は過去に遡って取得できません。失敗した日は永久に空白になります。\nトークン切れの可能性が高いので THREADS_ACCESS_TOKEN を確認してください。\n' "$RUN_URL")
+          gh issue create \
+            --title "🚨 フォロワー数の記録が失敗しました ($(date -u +%Y-%m-%d))" \
+            --body "$body"
