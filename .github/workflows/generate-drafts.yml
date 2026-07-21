@@ -13,7 +13,15 @@ on:
       count:
         description: "生成するドラフト数"
         required: false
-        default: "3"
+        default: "1"
+      dry_run:
+        description: "true にすると Notion に保存せず、生成結果をログに出すだけ"
+        required: false
+        default: "false"
+      post_type:
+        description: "型を指定（空なら playbook の weight で決める）"
+        required: false
+        default: ""
 
 jobs:
   generate:
@@ -34,9 +42,14 @@ jobs:
           GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-          DRAFT_COUNT: ${{ github.event.inputs.count || '3' }}
+          DRAFT_COUNT: ${{ github.event.inputs.count || '1' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          POST_TYPE: ${{ github.event.inputs.post_type || '' }}
         run: |
-          python scripts/run_generate.py --count "$DRAFT_COUNT"
+          args=(--count "$DRAFT_COUNT")
+          [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
+          [ -n "$POST_TYPE" ] && args+=(--type "$POST_TYPE")
+          python scripts/run_generate.py "${args[@]}"
 
       - name: Commit cache & generated images
         run: |

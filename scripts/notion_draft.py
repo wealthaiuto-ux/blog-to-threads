@@ -52,6 +52,71 @@ def _rt(text: str) -> list[dict]:
     return [{"type": "text", "text": {"content": text}}]
 
 
+_SCHEMA_CACHE: dict | None = None
+
+
+def db_properties() -> dict:
+    """DBのプロパティ定義を取得（1回だけ）。
+
+    型・テーマ・却下理由などの新しい項目は、Notion側に無ければ黙って書き込まない。
+    「プロパティを足さないと生成が全部落ちる」状態を避けるため。
+    """
+    global _SCHEMA_CACHE
+    if _SCHEMA_CACHE is None:
+        _SCHEMA_CACHE = _request("GET", f"/databases/{_db_id()}").get("properties", {})
+    return _SCHEMA_CACHE
+
+
+def save_single(article: dict, text: str, *, post_type: str, theme: str,
+                status: str = "draft", problems: list[str] | None = None,
+                image_url: str | None = None) -> str:
+    """単発投稿を1ページ作成する（v3）。
+
+    ツリーではなく単発なので本文は「投稿1」にだけ入れる。
+    型・テーマは月次レビューの比較軸になるが、Notion側は表示用。
+    実際の分析は data/generated_log.json と posted_log.json を使う。
+    """
+    schema = db_properties()
+    props: dict = {
+        "タイトル": {"title": _rt(article.get("title", "(無題)"))},
+        "ステータス": {"select": {"name": status}},
+        "記事URL": {"url": article.get("url")},
+        "投稿1": {"rich_text": _rt(text)},
+    }
+    if image_url:
+        props["画像URL"] = {"url": image_url}
+
+    # Notion側に該当プロパティがある場合だけ書き込む
+    optional = {
+        "型": {"select": {"name": post_type}},
+        "テーマ": {"select": {"name": theme}},
+    }
+    for name, value in optional.items():
+        if name in schema:
+            props[name] = value
+
+    res = _request("POST", "/pages", {
+        "parent": {"database_id": _db_id()},
+        "properties": props,
+    })
+    page_id = res["id"]
+
+    # 型・テーマ・自動検査の結果はページ本文にも残す。
+    # プロパティが無い環境でも、承認する人が何の型かを見られるようにするため。
+    note = f"型: {post_type} ／ テーマ: {theme}"
+    if problems:
+        note += f"\n⚠ 自動検査に通らなかった項目: {' / '.join(problems)}"
+    _request("PATCH", f"/blocks/{page_id}/children", {"children": [{
+        "object": "block",
+        "type": "callout",
+        "callout": {
+            "rich_text": _rt(note),
+            "icon": {"type": "emoji", "emoji": "⚠" if problems else "🏷"},
+        },
+    }]})
+    return page_id
+
+
 def save_draft(article: dict, posts: list[str], image_url: str | None) -> str:
     """draft を1ページ作成、ページIDを返す。"""
     props: dict = {

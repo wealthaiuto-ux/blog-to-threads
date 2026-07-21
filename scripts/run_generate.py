@@ -1,152 +1,112 @@
-"""生成ジョブ：記事選定 → ツリー生成 → Notionに status=draft で保存。
+"""生成ジョブ（v3）：playbook が決めた型・テーマ・記事で単発投稿を1本作り、Notionに保存する。
 
-これだけ動かして、ユーザーがNotionでレビュー → approved にすると、
-run_post.py が朝/昼/夜のスケジュールで拾って投稿する。
+v2 までとの違い:
+  - ツリー生成 → 単発生成（generate_tree.py ではなく generate_post.py）
+  - 記事選択が「新着70%のランダム」→ playbook.py（未使用優先・型との組み合わせ管理）
+  - 生成物を機械フィルタに通し、通らなければ needs_fix で保存して人には出さない
+  - generated_log に post_type / theme を記録する（月次レビューの比較軸になる）
+
+設計の全体像は REDESIGN.md、ルールは CLAUDE.md を参照。
+旧ツリー版は generate_tree.py に残してあるが、v3 では使っていない。
 """
 from __future__ import annotations
 
 import argparse
 import json
-import os
-import random
-import re
 import sys
-import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
-
-# ドラフト生成した記事の履歴。投稿されなかった記事も一定期間は再選定しない。
-GEN_LOG_PATH = Path(__file__).resolve().parent.parent / "data" / "generated_log.json"
-GEN_DEDUPE_HOURS = 24 * 7
-
-
-def _load_gen_log() -> list[dict]:
-    if not GEN_LOG_PATH.exists():
-        return []
-    return json.loads(GEN_LOG_PATH.read_text(encoding="utf-8"))
-
-
-def _recently_generated_urls(log: list[dict]) -> set[str]:
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=GEN_DEDUPE_HOURS)
-    urls = set()
-    for entry in log:
-        try:
-            if datetime.fromisoformat(entry["generated_at"]) >= cutoff:
-                urls.add(entry["article_url"])
-        except (KeyError, ValueError):
-            continue
-    return urls
-
-
-def _append_gen_log(url: str) -> None:
-    log = _load_gen_log()
-    log.append({"article_url": url, "generated_at": datetime.now(timezone.utc).isoformat()})
-    GEN_LOG_PATH.write_text(json.dumps(log, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def _strip_utm(url: str) -> str:
-    parsed = urlparse(url)
-    cleaned = [(k, v) for k, v in parse_qsl(parsed.query, keep_blank_values=True)
-               if not k.lower().startswith("utm_") and k.lower() not in {"fbclid", "gclid"}]
-    return urlunparse(parsed._replace(query=urlencode(cleaned)))
-
-
-def _clean_post_urls(text: str) -> str:
-    """投稿本文中のURLに残ったUTMを除去する。"""
-    return re.sub(r"https?://\S+", lambda m: _strip_utm(m.group(0)), text)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 import crawl_blog  # type: ignore
 import fetch_article  # type: ignore
-import generate_tree  # type: ignore
-import maybe_image  # type: ignore
+import generate_post  # type: ignore
 import notion_draft  # type: ignore
-import pick_article  # type: ignore
+import playbook  # type: ignore
 
-# Nano Banana 生成画像を添付する確率（1.0 = 毎回）
-IMAGE_PROBABILITY = 1.0
-# 画像生成のリトライ回数（Nano Bananaが空返答した場合）
-IMAGE_RETRY = 3
+ROOT = Path(__file__).resolve().parent.parent
+GEN_LOG_PATH = ROOT / "data" / "generated_log.json"
 
 
-def _build_raw_url(local_path: Path) -> str | None:
-    """生成画像のローカルパスを GitHub raw URL に変換。
-    GitHub Actions では GITHUB_REPOSITORY が自動で設定される。
-    ローカル実行時は RAW_BASE_URL 環境変数で上書き可能。
-    """
-    raw_base = os.environ.get("RAW_BASE_URL")
-    if raw_base:
-        return f"{raw_base.rstrip('/')}/{local_path.name}"
-    repo = os.environ.get("GITHUB_REPOSITORY")  # "owner/repo"
-    branch = os.environ.get("GITHUB_REF_NAME", "main")
-    if not repo:
-        return None
-    rel = local_path.relative_to(Path(__file__).resolve().parent.parent)
-    return f"https://raw.githubusercontent.com/{repo}/{branch}/{rel.as_posix()}"
+def _append_gen_log(entry: dict) -> None:
+    log = []
+    if GEN_LOG_PATH.exists():
+        try:
+            log = json.loads(GEN_LOG_PATH.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            log = []
+    log.append(entry)
+    GEN_LOG_PATH.write_text(json.dumps(log, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--article-url", help="特定記事を指定")
-    ap.add_argument("--no-image", action="store_true")
-    ap.add_argument("--count", type=int, default=1, help="一度に生成するドラフト数")
+    ap.add_argument("--count", type=int, default=1, help="生成本数（既定1。1日1本の運用）")
+    ap.add_argument("--type", dest="force_type", help="型を指定（検証用）")
+    ap.add_argument("--theme", dest="force_theme", help="テーマを指定（検証用）")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="Notionに保存せず、生成結果を標準出力に出すだけ")
     args = ap.parse_args()
 
+    pb = playbook.load_playbook()
+    for w in playbook.check_inventory(pb):
+        print(f"[warn] {w}", file=sys.stderr)
+
+    # 記事キャッシュを更新し、分類ファイルに無い新着があれば知らせる
     items = crawl_blog.fetch_feed()
     crawl_blog.save_cache(items)
-    print(f"[crawl] {len(items)} articles")
+    known = {a["url"].rstrip("/") for a in playbook.load_articles()}
+    unknown = [a for a in items if a["url"].rstrip("/") not in known]
+    if unknown:
+        print(f"[warn] 未分類の新着記事が{len(unknown)}本あります。"
+              f"classify_articles.py を実行してください", file=sys.stderr)
+        for a in unknown[:5]:
+            print(f"        - {a['title'][:50]}", file=sys.stderr)
 
-    excluded = pick_article.recently_posted_urls(pick_article.load_log())
-    # 投稿済みだけでなく、7日以内にドラフト生成した記事も除外する
-    excluded |= _recently_generated_urls(_load_gen_log())
-
-    # 同一バッチ内で切り口が重複しないように割り当てる
-    angles = random.sample(generate_tree.ANGLES, min(args.count, len(generate_tree.ANGLES)))
-
+    used_urls: set[str] = set()
     for i in range(args.count):
-        if args.article_url and i == 0:
-            meta = next((a for a in items if a["url"] == args.article_url), None)
-            if not meta:
-                raise SystemExit(f"指定URL {args.article_url} 見つからず")
-        else:
-            meta = pick_article.pick(items, excluded)
-            if not meta:
-                print(f"[skip] 在庫切れ（{i}/{args.count}）")
-                break
-            excluded.add(meta["url"])
+        decision = playbook.decide(pb, force_type=args.force_type, force_theme=args.force_theme)
+        meta = decision["article"]
+        if meta["url"].rstrip("/") in used_urls:
+            print(f"[skip] 同一バッチ内で重複（{meta['title'][:30]}）", file=sys.stderr)
+            continue
+        used_urls.add(meta["url"].rstrip("/"))
 
         article = fetch_article.fetch(meta["url"])
-        tree = generate_tree.call_claude(article, angle=angles[i % len(angles)])
-        # 投稿本文中のURLからUTMパラメータを掃除
-        tree["posts"] = [_clean_post_urls(p) for p in tree.get("posts", [])]
+        result = generate_post.generate(
+            decision, article, max_retry=pb.get("rules", {}).get("max_filter_retry", 3))
 
-        image_url = None
-        if not args.no_image and random.random() < IMAGE_PROBABILITY:
-            out = maybe_image.OUT_DIR / f"thread_{int(time.time())}_{i}.png"
-            ok = False
-            for attempt in range(1, IMAGE_RETRY + 1):
-                ok = maybe_image.generate(
-                    tree.get("image_prompt") or article["title"],
-                    out,
-                    infographic=tree.get("infographic"),
-                )
-                if ok:
-                    break
-                print(f"[image] 失敗 attempt {attempt}/{IMAGE_RETRY} → リトライ")
-            if ok:
-                image_url = _build_raw_url(out)
-                if image_url:
-                    print(f"[image] {image_url}")
-                else:
-                    print("[image] 生成済みだが raw URL を組めない（ローカル実行？）")
-                    image_url = None
-            else:
-                print(f"[image] {IMAGE_RETRY}回失敗 → 画像なしで続行")
+        header = f"[{decision['post_type']}] [{decision['theme']}] {article['title'][:36]}"
+        if args.dry_run:
+            print(f"\n=== {header} ===")
+            print(f"status: {result['status']}  attempts: {result['attempts']}")
+            if result["problems"]:
+                print(f"problems: {' / '.join(result['problems'])}")
+            print("-" * 40)
+            print(result["text"])
+            print("-" * 40)
+            continue
 
-        page_id = notion_draft.save_draft(article, tree["posts"], image_url)
-        _append_gen_log(meta["url"])
-        print(f"[saved] {meta['title'][:40]}... -> page={page_id}")
+        page_id = notion_draft.save_single(
+            article, result["text"],
+            post_type=decision["post_type"],
+            theme=decision["theme"],
+            status=result["status"],
+            problems=result["problems"],
+        )
+        _append_gen_log({
+            "article_url": meta["url"],
+            "article_title": article["title"],
+            "post_type": decision["post_type"],
+            "theme": decision["theme"],
+            "status": result["status"],
+            "attempts": result["attempts"],
+            "notion_page_id": page_id,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        })
+        mark = "⚠ needs_fix" if result["status"] == "needs_fix" else "saved"
+        print(f"[{mark}] {header} -> page={page_id}")
 
     return 0
 
