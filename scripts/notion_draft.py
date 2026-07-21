@@ -73,17 +73,7 @@ def save_draft(article: dict, posts: list[str], image_url: str | None) -> str:
     return res["id"]
 
 
-def fetch_oldest_approved() -> dict | None:
-    """status=approved の最古ページ1件を辞書で返す。無ければNone。"""
-    res = _request("POST", f"/databases/{_db_id()}/query", {
-        "filter": {"property": "ステータス", "select": {"equals": "approved"}},
-        "sorts": [{"property": "生成日時", "direction": "ascending"}],
-        "page_size": 1,
-    })
-    if not res.get("results"):
-        return None
-
-    page = res["results"][0]
+def _page_to_draft(page: dict) -> dict:
     props = page["properties"]
 
     def _read_rt(name: str) -> str:
@@ -102,6 +92,45 @@ def fetch_oldest_approved() -> dict | None:
         "posts": posts,
         "image_url": props.get("画像URL", {}).get("url"),
     }
+
+
+def fetch_approved(limit: int = 5) -> list[dict]:
+    """status=approved のページを古い順に最大limit件返す。
+
+    重複スキップで次の候補に進めるよう、1件ではなく複数返す。
+    """
+    res = _request("POST", f"/databases/{_db_id()}/query", {
+        "filter": {"property": "ステータス", "select": {"equals": "approved"}},
+        "sorts": [{"property": "生成日時", "direction": "ascending"}],
+        "page_size": limit,
+    })
+    return [_page_to_draft(p) for p in res.get("results", [])]
+
+
+def fetch_oldest_approved() -> dict | None:
+    """status=approved の最古ページ1件を辞書で返す。無ければNone。"""
+    drafts = fetch_approved(limit=1)
+    return drafts[0] if drafts else None
+
+
+def mark_skipped(page_id: str, reason: str) -> None:
+    """投稿せずに見送ったドラフトに印を付ける。
+
+    approved のまま残すと次回も同じページを拾って詰まるので、必ずステータスを変える。
+    本文（投稿1〜3）は後から中身を確認できるよう、そのまま残す。
+    """
+    _request("PATCH", f"/pages/{page_id}", {"properties": {
+        "ステータス": {"select": {"name": "skipped"}},
+    }})
+    # 理由はページ本文にコメントとして残す（プロパティを潰さないため）
+    _request("PATCH", f"/blocks/{page_id}/children", {"children": [{
+        "object": "block",
+        "type": "callout",
+        "callout": {
+            "rich_text": _rt(f"⏭ 投稿を見送りました: {reason}"),
+            "icon": {"type": "emoji", "emoji": "⏭"},
+        },
+    }]})
 
 
 def mark_posted(page_id: str, thread_root_id: str, post_url: str | None = None) -> None:

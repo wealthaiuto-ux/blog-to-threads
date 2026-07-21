@@ -8,12 +8,18 @@ on:
     - cron: "0 2 * * *"    # JST 11:00
     - cron: "0 11 * * *"   # JST 20:00
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true にすると投稿せず、選ばれるドラフトの中身だけ表示する"
+        required: false
+        default: "false"
 
 jobs:
   post:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
 
@@ -22,12 +28,19 @@ jobs:
           python-version: "3.12"
 
       - name: Post oldest approved draft
+        id: post
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
-        run: python scripts/run_post.py
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            python scripts/run_post.py --dry-run
+          else
+            python scripts/run_post.py
+          fi
 
       - name: Commit log
         run: |
@@ -36,3 +49,38 @@ jobs:
           git add data/posted_log.json || true
           git diff --cached --quiet || git commit -m "log: posted $(date -u +%Y-%m-%dT%H:%MZ)"
           git push || true
+
+      # 在庫切れ（approved=0）は例外ではないので success で通ってしまう。
+      # 「静かに止まっている」状態なので Issue で知らせる。同じ Issue が開いていれば作らない。
+      - name: Notify on empty stock
+        if: steps.post.outputs.stock_out == 'true' && github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          existing=$(gh issue list --state open --label stock-out --limit 1 --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "既に在庫切れIssueが開いているので作らない"
+            exit 0
+          fi
+          gh label create stock-out --color FBCA04 --description "承認済みドラフトの在庫切れ" 2>/dev/null || true
+          gh issue create --label stock-out \
+            --title "⚠️ 承認済みドラフトの在庫が切れています" \
+            --body "投稿しようとしましたが、status=approved のドラフトが0件でした。
+
+実行ログ: $RUN_URL
+
+Notion のドラフトDBを開いて、生成済みドラフトを approved にしてください。
+ドラフト自体が無い場合は Actions から \`Generate Threads Drafts\` を手動実行してください。"
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create \
+            --title "🚨 Threads投稿が失敗しました ($(date -u +%Y-%m-%d))" \
+            --body "投稿ジョブが失敗しました。
+
+実行ログ: $RUN_URL"

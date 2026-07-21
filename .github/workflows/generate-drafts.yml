@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
 
@@ -31,8 +32,9 @@ jobs:
           GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          DRAFT_COUNT: ${{ github.event.inputs.count || '3' }}
         run: |
-          python scripts/run_generate.py --count "${{ github.event.inputs.count || '3' }}"
+          python scripts/run_generate.py --count "$DRAFT_COUNT"
 
       - name: Commit cache & generated images
         run: |
@@ -41,3 +43,20 @@ jobs:
           git add data/articles_cache.json data/generated_log.json data/generated/ || true
           git diff --cached --quiet || git commit -m "drafts: $(date -u +%Y-%m-%dT%H:%MZ)"
           git push || true
+
+      # 生成がこけると approved 在庫が尽き、投稿ジョブは success のまま無言でスキップする。
+      # 静かに止まるのを防ぐため、失敗時は必ず Issue を立てて通知する。
+      - name: Notify on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create \
+            --title "🚨 ドラフト生成が失敗しました ($(date -u +%Y-%m-%d))" \
+            --body "生成ジョブが失敗しました。今夜のドラフトは0件です。
+
+実行ログ: $RUN_URL
+
+放置すると approved 在庫が尽きて、投稿ジョブが success のまま無言でスキップし始めます。
+復旧するには Actions から \`Generate Threads Drafts\` を count=1 で手動実行してください。"
