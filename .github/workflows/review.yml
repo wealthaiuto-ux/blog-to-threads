@@ -1,0 +1,46 @@
+name: Review
+
+# 週次: 毎週月曜 21:00 JST（= 月曜 12:00 UTC）… 数字を並べるだけ。判断しない
+# 月次: 毎月1日 21:00 JST（= 1日 12:00 UTC）… 先月分を集計し、変更案を1つだけ出す
+#
+# 月次は「提案」までで、playbook.json は書き換えない。
+# 反映するには reports/monthly/YYYY-MM.md を読んで、
+# 手動で monthly_review.py --apply を実行する（人の承認を挟むため）。
+on:
+  schedule:
+    - cron: "0 12 * * 1"
+    - cron: "0 12 1 * *"
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "weekly / monthly"
+        required: false
+        default: "weekly"
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Weekly report
+        if: github.event.schedule == '0 12 * * 1' || github.event.inputs.kind == 'weekly'
+        run: python scripts/weekly_review.py
+
+      - name: Monthly review (提案のみ・playbookは書き換えない)
+        if: github.event.schedule == '0 12 1 * *' || github.event.inputs.kind == 'monthly'
+        run: python scripts/monthly_review.py
+
+      - name: Commit reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/ || true
+          git diff --cached --quiet || git commit -m "report: $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push || true
