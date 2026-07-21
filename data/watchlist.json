@@ -1,0 +1,66 @@
+{
+  "_comment": "返信先の候補リスト。Threads APIのkeyword_searchは権限がなく使えず、Threadsの公開ページはJSレンダリングでスクレイプもできない。そのため候補の発見はGoogle検索経由で、月1回まとめて行う（毎日の自動監視はできない）。日々の返信はThreadsアプリ上で手動。",
+  "updated_at": "2026-07-22",
+  "method": "Google (site:threads.com + ニッチキーワード) → 公開プロフィールの og:description からフォロワー数とbioを取得",
+  "_finding": "このジャンルのアカウントは総じて小さい。最大でも4.6K、大半が300〜600。AI・副業ジャンル（2〜4万）とは1〜2桁ちがう。『大きいアカウントに返信して露出を借りる』戦術は、この領域では効きが弱い。",
+  "accounts": [
+    {
+      "handle": "daifukgram",
+      "followers": 4600,
+      "bio": "入居6年目・厳選グッズで後悔ポイント回収中／平屋／40代ズボラ母",
+      "rank": "A",
+      "why": "このジャンルで見つかった中で最大。テーマが『買って後悔したか』で完全に重なる。コメント欄が動く可能性がある唯一の規模"
+    },
+    {
+      "handle": "ayaok_grandsmart",
+      "followers": 517,
+      "bio": "性能もデザインも諦めきれない家づくり／30代夫婦と1歳児／2024年引渡し・入居後レビュー",
+      "rank": "A",
+      "why": "読者層がほぼ同じ（30代・子あり・新築入居後）。入居して感じたことを書く姿勢も近い"
+    },
+    {
+      "handle": "ku_rowa_san",
+      "followers": 350,
+      "bio": "30代パパ／1歳息子の育児グッズ／共働き夫婦の時短家電",
+      "rank": "A",
+      "why": "ペルソナがほぼ同一。時短家電と育児グッズという2クラスタが重なる"
+    },
+    {
+      "handle": "shiromaru_money",
+      "followers": 200,
+      "bio": "30代共働き3人家族／インデックス投資×経済圏／Xフォロワー6,400",
+      "rank": "B",
+      "why": "家族構成が同じ。お金クラスタが重なる。ただし投資寄りでmanelite側のテーマに近い"
+    },
+    {
+      "handle": "mina_fp_kakei",
+      "followers": 380,
+      "bio": "30代フルタイム3児ママ／FP2級勉強中／家計と光熱費",
+      "rank": "B",
+      "why": "光熱費・家計のテーマが重なる。読者は家計を下げたい層"
+    },
+    {
+      "handle": "kankan___home",
+      "followers": 445,
+      "bio": "家族の未来を間取りと仕組みで守る／子育て・共働き／相談実績100件以上",
+      "rank": "B",
+      "why": "読者層は重なるが、営業目的のビジネスアカウント。返信の相手としては優先度を下げる"
+    },
+    {
+      "handle": "snks_home_",
+      "followers": 93,
+      "bio": "東京23区／2歳児／狭いなりにこだわりの家",
+      "rank": "C",
+      "why": "同規模。露出を借りる相手ではなく、横のつながりを作る相手"
+    }
+  ],
+  "excluded": [
+    { "handle": "setsuden_papa", "followers": 4, "why": "ポジションがほぼ同一（電気代・電力会社見直し・ブログあり）だが4フォロワー。競合として観察するだけ" },
+    { "handle": "fuurinnoouti", "followers": 606, "why": "工務店の公式。読者は施主候補で、暮らしの実測には反応しない" },
+    { "handle": "sakaguchi_madori", "followers": 307, "why": "間取りの専門家。テーマが家づくり設計に寄りすぎ" },
+    { "handle": "ecoyaohyama", "followers": 405, "why": "工務店の公式" },
+    { "handle": "sub.my_room.sapporo", "followers": 313, "why": "内装業者・地域が札幌で読者が重ならない" },
+    { "handle": "sappu.gohan", "followers": 504, "why": "レシピ。時短だがテーマが料理" },
+    { "handle": "wanitime.camp", "followers": 35, "why": "キャンプ主体" }
+  ]
+}
