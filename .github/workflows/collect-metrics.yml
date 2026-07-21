@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
+    inputs:
+      refresh:
+        description: "true にすると取得済みの投稿も insights を取り直す"
+        required: false
+        default: "false"
 
 jobs:
   collect:
@@ -30,12 +35,23 @@ jobs:
         run: |
           python scripts/snapshot_followers.py
 
+      # 投稿48h経過分の views/likes/replies を回収する。
+      # refresh=true にすると取得済みのぶんも取り直す（数字は投稿後も伸び続けるため）。
+      - name: Collect post insights
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          REFRESH: ${{ github.event.inputs.refresh || 'false' }}
+        run: |
+          args=()
+          [ "$REFRESH" = "true" ] && args+=(--refresh)
+          python scripts/collect_insights.py "${args[@]}"
+
       - name: Commit snapshot
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/followers.json || true
-          git diff --cached --quiet || git commit -m "followers: $(date -u +%Y-%m-%dT%H:%MZ)"
+          git add data/followers.json data/insights.json || true
+          git diff --cached --quiet || git commit -m "metrics: $(date -u +%Y-%m-%dT%H:%MZ)"
           git push || true
 
       # 計測が静かに止まると、後から取り返せないデータが失われる。
