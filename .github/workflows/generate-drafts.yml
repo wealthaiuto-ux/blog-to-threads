@@ -52,11 +52,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          body=$(printf '生成ジョブが失敗しました。今夜のドラフトは0件です。\n\n実行ログ: %s\n\n放置すると approved 在庫が尽きて、投稿ジョブが success のまま無言でスキップし始めます。\n復旧するには Actions から `Generate Threads Drafts` を count=1 で手動実行してください。\n' "$RUN_URL")
           gh issue create \
             --title "🚨 ドラフト生成が失敗しました ($(date -u +%Y-%m-%d))" \
-            --body "生成ジョブが失敗しました。今夜のドラフトは0件です。
-
-実行ログ: $RUN_URL
-
-放置すると approved 在庫が尽きて、投稿ジョブが success のまま無言でスキップし始めます。
-復旧するには Actions から \`Generate Threads Drafts\` を count=1 で手動実行してください。"
+            --body "$body"
