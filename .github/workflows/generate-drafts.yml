@@ -4,7 +4,7 @@ name: Generate Threads Drafts
 # UTC ぴったり時刻は混雑で遅延しやすいので 3分ずらしている
 # 翌日の朝/昼/夜の投稿スロット分をまとめて作る
 # 【2026-07-21 停止中】REDESIGN.md v3 の P2（計測）・P3（月次レビュー）が入るまで止める。
-# 再開するときは下の schedule のコメントを外すだけでよい（毎晩21:03に翌日分を1本）。
+# 再開するときは下の schedule のコメントを外すだけでよい（毎晩21:03に翌日分を2本）。
 on:
   # schedule:
   #   - cron: "3 12 * * *"   # JST 21:03
@@ -13,7 +13,7 @@ on:
       count:
         description: "生成するドラフト数"
         required: false
-        default: "1"
+        default: "2"
       dry_run:
         description: "true にすると Notion に保存せず、生成結果をログに出すだけ"
         required: false
@@ -42,7 +42,7 @@ jobs:
           GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-          DRAFT_COUNT: ${{ github.event.inputs.count || '1' }}
+          DRAFT_COUNT: ${{ github.event.inputs.count || '2' }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
           POST_TYPE: ${{ github.event.inputs.post_type || '' }}
         run: |
