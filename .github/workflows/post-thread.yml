@@ -2,11 +2,13 @@ name: Post Approved Thread
 
 # 朝7:00 / 昼11:00 / 夜20:00 JST
 # 対応UTC: 22:00 / 02:00 / 11:00（前日UTC夜含む）
+# 【2026-07-21 停止中】REDESIGN.md v2 の再設計が終わるまで自動投稿を止める。
+# 再開するときは schedule のコメントを外す（再開時は月/水/金 08:00 の1枠に変更予定）
 on:
-  schedule:
-    - cron: "0 22 * * *"   # JST 07:00
-    - cron: "0 2 * * *"    # JST 11:00
-    - cron: "0 11 * * *"   # JST 20:00
+  # schedule:
+  #   - cron: "0 22 * * *"   # JST 07:00
+  #   - cron: "0 2 * * *"    # JST 11:00
+  #   - cron: "0 11 * * *"   # JST 20:00
   workflow_dispatch:
     inputs:
       dry_run:
