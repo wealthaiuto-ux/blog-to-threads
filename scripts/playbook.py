@@ -59,16 +59,21 @@ def _weighted_choice(entries: dict[str, dict], exclude: set[str] | None = None) 
 def _usage_history() -> list[tuple[str, datetime]]:
     """(article_url, 使った日時) の一覧。生成・投稿の両方を「使った」とみなす。"""
     out: list[tuple[str, datetime]] = []
+    # ネタ帳由来のログは article_url=None なので除外する（記事在庫の履歴ではない）
     for entry in _load(POSTED_LOG):
+        url = entry.get("article_url")
+        if not url:
+            continue
         try:
-            out.append((entry["article_url"].rstrip("/"),
-                        datetime.fromisoformat(entry["posted_at"])))
+            out.append((url.rstrip("/"), datetime.fromisoformat(entry["posted_at"])))
         except (KeyError, ValueError):
             continue
     for entry in _load(GEN_LOG):
+        url = entry.get("article_url")
+        if not url:
+            continue
         try:
-            out.append((entry["article_url"].rstrip("/"),
-                        datetime.fromisoformat(entry["generated_at"])))
+            out.append((url.rstrip("/"), datetime.fromisoformat(entry["generated_at"])))
         except (KeyError, ValueError):
             continue
     return out
@@ -103,7 +108,7 @@ def _used_combos(days: int) -> set[tuple[str, str]]:
         ts = entry.get("posted_at") or entry.get("generated_at")
         t = entry.get("post_type")
         url = entry.get("article_url")
-        if not (ts and t and url):
+        if not (ts and t and url):  # url が None のネタ由来ログはここで弾かれる
             continue
         try:
             if datetime.fromisoformat(ts) >= cutoff:
