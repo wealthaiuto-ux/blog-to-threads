@@ -53,16 +53,23 @@ def main() -> int:
     for w in playbook.check_inventory(pb):
         print(f"[warn] {w}", file=sys.stderr)
 
-    # 記事キャッシュを更新し、分類ファイルに無い新着があれば知らせる
-    items = crawl_blog.fetch_feed()
-    crawl_blog.save_cache(items)
-    known = {a["url"].rstrip("/") for a in playbook.load_articles()}
-    unknown = [a for a in items if a["url"].rstrip("/") not in known]
-    if unknown:
-        print(f"[warn] 未分類の新着記事が{len(unknown)}本あります。"
-              f"classify_articles.py を実行してください", file=sys.stderr)
-        for a in unknown[:5]:
-            print(f"        - {a['title'][:50]}", file=sys.stderr)
+    # 記事キャッシュを更新し、分類ファイルに無い新着があれば知らせる。
+    # ここはブログの生死に依存する処理なので、失敗しても生成は止めない。
+    # ネタ帳からの生成も、ブログ在庫（article_themes.json / キャッシュ）からの生成も、
+    # このクロールが成功していなくても動く（クロールは新着検知のためだけ）。
+    try:
+        items = crawl_blog.fetch_feed()
+        crawl_blog.save_cache(items)
+        known = {a["url"].rstrip("/") for a in playbook.load_articles()}
+        unknown = [a for a in items if a["url"].rstrip("/") not in known]
+        if unknown:
+            print(f"[warn] 未分類の新着記事が{len(unknown)}本あります。"
+                  f"classify_articles.py を実行してください", file=sys.stderr)
+            for a in unknown[:5]:
+                print(f"        - {a['title'][:50]}", file=sys.stderr)
+    except SystemExit as e:
+        print(f"[warn] ブログのクロールに失敗（{e}）。"
+              f"新着検知はスキップし、既存の在庫で生成を続けます", file=sys.stderr)
 
     # --- ネタ帳を優先する（ゆうとさんが放り込んだ「これ話したい」を先に消化）---
     # ネタが count 本に足りなければ、残りをブログ記事から作る（下支え）。
@@ -106,7 +113,11 @@ def main() -> int:
             continue
         used_urls.add(meta["url"].rstrip("/"))
 
-        article = fetch_article.fetch(meta["url"])
+        try:
+            article = fetch_article.fetch(meta["url"])
+        except SystemExit as e:
+            print(f"[skip] 記事本文の取得に失敗（{meta['url']}）: {e}", file=sys.stderr)
+            continue
         result = generate_post.generate(
             decision, article, max_retry=pb.get("rules", {}).get("max_filter_retry", 3))
 
