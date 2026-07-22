@@ -137,6 +137,54 @@ def call_claude(system: str, user: str) -> str:
     return "".join(b.get("text", "") for b in res.get("content", [])).strip()
 
 
+def build_idea_prompt(idea: str, detail: str = "") -> tuple[str, str]:
+    """ネタ帳の一言から投稿を書くためのプロンプト。
+
+    記事と違い、ネタは本人が出した「これ話したい」。切り口を機械で押し付けず、
+    ネタが持っている温度をそのまま活かす。ここで事実を足さないことが最重要
+    （ネタに書いていない数字やエピソードを創作すると、本人の体験を捏造することになる）。
+    """
+    system = f"""{load_constitution()}
+
+---
+
+あなたは石井雄都（ちゃんこ）本人として、Threadsの投稿を1本書く。
+上のルールは絶対に守ること。
+
+これは本人が「これを話したい」と放り込んだネタです。
+ネタに込められた温度・言いたいことを、本人の言葉で1本の投稿に仕上げてください。
+
+出力形式:
+- 投稿本文だけを出力する。前置き・解説・鍵括弧での囲みは書かない
+- 200字前後（最大450字）
+- 改行で読みやすく区切る。箇条書きは「・」を使ってよい
+- URLは書かない。ハッシュタグは付けない
+
+**最重要**: ネタに書かれていない事実（数字・エピソード・家族の発言）を足さないこと。
+ネタが短ければ短いまま、盛らずに仕上げる。膨らませるより、削って刺す。"""
+
+    user = f"今回のネタ:\n{idea}"
+    if detail:
+        user += f"\n\n補足:\n{detail}"
+    user += "\n\nこのネタを、Threadsの投稿1本にしてください。"
+    return system, user
+
+
+def generate_from_idea(idea: str, detail: str = "", max_retry: int = 3) -> dict:
+    """ネタ帳の一言から投稿を生成する。戻り値は generate() と同じ形。"""
+    system, user = build_idea_prompt(idea, detail)
+    last_text, last_problems = "", ["生成できなかった"]
+    for attempt in range(1, max_retry + 1):
+        text = call_claude(system, user)
+        problems = check(text, "")  # ネタにはタイトル丸写しの概念がないので空で渡す
+        if not problems:
+            return {"text": text, "status": "draft", "problems": [], "attempts": attempt}
+        print(f"[filter] {attempt}回目 不合格: {' / '.join(problems)}", file=sys.stderr)
+        last_text, last_problems = text, problems
+        user += f"\n\n前回の出力は次の理由で却下されました。直してください: {' / '.join(problems)}"
+    return {"text": last_text, "status": "needs_fix", "problems": last_problems, "attempts": max_retry}
+
+
 def generate(decision: dict, article: dict, max_retry: int = 3) -> dict:
     """検査を通るまで最大 max_retry 回生成する。
 

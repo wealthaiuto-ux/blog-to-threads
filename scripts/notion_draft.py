@@ -178,6 +178,50 @@ def fetch_oldest_approved() -> dict | None:
     return drafts[0] if drafts else None
 
 
+def fetch_neta(limit: int = 5) -> list[dict]:
+    """ステータス=ネタ の行を古い順に返す。ゆうとさんがスマホから放り込んだネタ。
+
+    タイトル欄にネタの一言を書く。詳細を足したければ投稿1に書いてもよい。
+    生成側はこれを拾って、同じ行を下書きに変える（4-1の投函口）。
+    """
+    res = _request("POST", f"/databases/{_db_id()}/query", {
+        "filter": {"property": "ステータス", "select": {"equals": "ネタ"}},
+        "sorts": [{"property": "生成日時", "direction": "ascending"}],
+        "page_size": limit,
+    })
+    out = []
+    for p in res.get("results", []):
+        props = p["properties"]
+        idea = "".join(t.get("plain_text", "") for t in props.get("タイトル", {}).get("title", []))
+        detail = "".join(t.get("plain_text", "") for t in props.get("投稿1", {}).get("rich_text", []))
+        out.append({"page_id": p["id"], "idea": idea.strip(), "detail": detail.strip()})
+    return out
+
+
+def update_neta_to_draft(page_id: str, text: str, *, status: str = "draft",
+                         post_type: str = "ネタ", problems: list[str] | None = None) -> None:
+    """ネタの行を、生成済みの下書きに変える（同じ行を使い回す。重複を作らない）。
+
+    タイトル（＝元のネタ）はそのまま残し、生成した本文を投稿1に入れる。
+    ゆうとさんは「自分が出したネタが、こう文章になった」と見比べて承認できる。
+    """
+    _request("PATCH", f"/pages/{page_id}", {"properties": {
+        "ステータス": {"select": {"name": status}},
+        "投稿1": {"rich_text": _rt(text)},
+    }})
+    note = f"型: {post_type}（ネタ帳から生成）"
+    if problems:
+        note += f"\n⚠ 自動検査に通らなかった項目: {' / '.join(problems)}"
+    _request("PATCH", f"/blocks/{page_id}/children", {"children": [{
+        "object": "block",
+        "type": "callout",
+        "callout": {
+            "rich_text": _rt(note),
+            "icon": {"type": "emoji", "emoji": "⚠" if problems else "💡"},
+        },
+    }]})
+
+
 def mark_skipped(page_id: str, reason: str) -> None:
     """投稿せずに見送ったドラフトに印を付ける。
 

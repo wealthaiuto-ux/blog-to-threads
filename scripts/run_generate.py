@@ -64,8 +64,41 @@ def main() -> int:
         for a in unknown[:5]:
             print(f"        - {a['title'][:50]}", file=sys.stderr)
 
+    # --- ネタ帳を優先する（ゆうとさんが放り込んだ「これ話したい」を先に消化）---
+    # ネタが count 本に足りなければ、残りをブログ記事から作る（下支え）。
+    neta_list = [] if args.dry_run else notion_draft.fetch_neta(limit=args.count)
+    remaining = args.count
+    for neta in neta_list:
+        if remaining <= 0:
+            break
+        if not neta["idea"]:
+            continue
+        result = generate_post.generate_from_idea(
+            neta["idea"], neta["detail"],
+            max_retry=pb.get("rules", {}).get("max_filter_retry", 3))
+        notion_draft.update_neta_to_draft(
+            neta["page_id"], result["text"], status=result["status"], problems=result["problems"])
+        _append_gen_log({
+            "article_url": None,
+            "article_title": None,
+            "source": "neta",
+            "idea": neta["idea"],
+            "post_type": "ネタ",
+            "theme": "ネタ",
+            "status": result["status"],
+            "attempts": result["attempts"],
+            "notion_page_id": neta["page_id"],
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        })
+        mark = "⚠ needs_fix" if result["status"] == "needs_fix" else "saved"
+        print(f"[{mark}] [ネタ] {neta['idea'][:36]} -> page={neta['page_id']}")
+        remaining -= 1
+
+    if neta_list:
+        print(f"[neta] ネタ帳から{len(neta_list)}本消化。残り{remaining}本をブログから生成", file=sys.stderr)
+
     used_urls: set[str] = set()
-    for i in range(args.count):
+    for i in range(remaining):
         decision = playbook.decide(pb, force_type=args.force_type, force_theme=args.force_theme)
         meta = decision["article"]
         if meta["url"].rstrip("/") in used_urls:
