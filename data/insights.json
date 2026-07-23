@@ -661,5 +661,39 @@
     "quotes": 0,
     "status": "ok",
     "attempts": 0
+  },
+  {
+    "thread_id": "17976785343026399",
+    "article_url": "https://chanko06.com/kantakun-vs-drum-shiki-hikaku/",
+    "article_title": "【比較】乾太くん vs ドラム式洗濯乾燥機：共働き家庭が乾太くんを選んだ3つの理由 | ちゃんこ ライフハックブログ",
+    "post_type": null,
+    "theme": null,
+    "posted_at": "2026-07-20T13:03:22.624614+00:00",
+    "collected_at": "2026-07-23T08:37:57.174118+00:00",
+    "age_hours": 67.6,
+    "views": 21,
+    "likes": 0,
+    "replies": 2,
+    "reposts": 0,
+    "quotes": 0,
+    "status": "ok",
+    "attempts": 0
+  },
+  {
+    "thread_id": "17926263000146762",
+    "article_url": "https://chanko06.com/lamdash-palmin-recall/",
+    "article_title": "ラムダッシュ パームイン リコール対象？ES-PV3A交換手順",
+    "post_type": null,
+    "theme": null,
+    "posted_at": "2026-07-20T22:52:43.691672+00:00",
+    "collected_at": "2026-07-23T08:37:57.174118+00:00",
+    "age_hours": 57.8,
+    "views": 45,
+    "likes": 0,
+    "replies": 2,
+    "reposts": 0,
+    "quotes": 0,
+    "status": "ok",
+    "attempts": 0
   }
 ]
