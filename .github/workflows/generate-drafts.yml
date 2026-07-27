@@ -3,11 +3,10 @@ name: Generate Threads Drafts
 # 毎日 21:03 JST (= 12:03 UTC) に3本分のドラフトを生成 → Notion保存
 # UTC ぴったり時刻は混雑で遅延しやすいので 3分ずらしている
 # 翌日の朝/昼/夜の投稿スロット分をまとめて作る
-# 【2026-07-21 停止中】REDESIGN.md v3 の P2（計測）・P3（月次レビュー）が入るまで止める。
-# 再開するときは下の schedule のコメントを外すだけでよい（毎晩21:03に翌日分を2本）。
+# 【2026-07-27 再開】REDESIGN.md v3 の P1・P2 完了により再稼働。
 on:
-  # schedule:
-  #   - cron: "3 12 * * *"   # JST 21:03
+  schedule:
+    - cron: "3 12 * * *"   # JST 21:03
   workflow_dispatch:
     inputs:
       count:
