@@ -183,6 +183,13 @@ def main() -> int:
         })
         mark = "⚠ needs_fix" if result["status"] == "needs_fix" else "saved"
         print(f"[{mark}] {header} -> page={page_id}")
+        # 保存したものも本文をログに出す。Notionを開かずに中身を確認できるようにするため。
+        print("-" * 40)
+        print(result["text"])
+        if reply_text:
+            print("--- リプ（リンク） ---")
+            print(reply_text)
+        print("-" * 40)
 
     return 0
 
