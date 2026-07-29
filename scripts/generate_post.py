@@ -27,6 +27,21 @@ MODEL = "claude-haiku-4-5-20251001"
 MAX_LEN = 450
 MIN_LEN = 60
 
+# 生成物の「下書きメモ」と「投稿本文」を分ける印。
+# メモを書かせた方が投稿の質は上がるが、そのまま出力に混ざると字数を食って全部落ちる。
+POST_MARKER = "===投稿==="
+
+
+def extract_post(raw: str) -> str:
+    """モデルの出力から投稿本文だけを取り出す。
+
+    印が無い場合は全文を本文とみなす（従来どおり）。
+    印が複数あるときは最後のものを使う。
+    """
+    if POST_MARKER in raw:
+        raw = raw.rsplit(POST_MARKER, 1)[1]
+    return raw.strip()
+
 # 生成物を人に見せる前に自動で弾く条件。
 # 旧システムは「【案A・体験談型】」のような内部ラベルが付いたまま公開される事故を起こした。
 NG_PATTERNS: list[tuple[str, str]] = [
@@ -48,6 +63,8 @@ NG_PATTERNS: list[tuple[str, str]] = [
     (r"(という点|といった点)", "説明口調（〜という点）"),
     (r"皆さん(は|も)", "読者への呼びかけが説明会っぽい"),
     (r"^(今回は|本日は|この記事では)", "前置きから入っている"),
+    (r"\*\*", "下書きメモの見出し記号（**）が残っている"),
+    (r"(予想と実際|拾う内容|拾うもの)", "下書きメモが本文に混ざっている"),
 ]
 
 # 絵文字（ざっくり範囲。厳密さより「多すぎ」を止められればよい）
@@ -173,10 +190,16 @@ AIっぽさの正体は語尾ではなく構造。論点を3つ並べて綺麗�
 この記事の中から「型に合う一点」だけを選んで、Threadsの投稿を1本書いてください。
 記事全体を紹介しようとしないこと。1つのシーン、1つの数字、1つの後悔に絞る。
 
-書く前に、記事の中から次を1つずつ拾ってください（拾ったものは出力しない）:
-- 自分の予想と実際がズレた一点は何か
-- そのとき何を感じたか（迷い・後悔・安心・怒り）
-これが投稿の入り口になります。商品の説明から入らないこと。"""
+出力は必ず次の形式にしてください:
+
+1. まず、記事から次の2つを拾って書く（下書きメモ。投稿には使われない）
+   - 自分の予想と実際がズレた一点
+   - そのとき何を感じたか（迷い・後悔・安心・怒り）
+2. 次に、{POST_MARKER} だけの行を置く
+3. その下に、投稿本文だけを書く。メモの文言や見出し記号を持ち込まないこと
+
+{POST_MARKER} から下が、そのままThreadsに投稿されます。
+商品の説明から入らず、上で拾った感情かズレから書き出してください。"""
 
     return system, user
 
@@ -260,7 +283,7 @@ def generate_from_idea(idea: str, detail: str = "", max_retry: int = 3) -> dict:
     system, user = build_idea_prompt(idea, detail)
     last_text, last_problems = "", ["生成できなかった"]
     for attempt in range(1, max_retry + 1):
-        text = call_claude(system, user)
+        text = extract_post(call_claude(system, user))
         problems = check(text, "")  # ネタにはタイトル丸写しの概念がないので空で渡す
         if not problems:
             return {"text": text, "status": "draft", "problems": [], "attempts": attempt}
@@ -358,7 +381,7 @@ def generate(decision: dict, article: dict, max_retry: int = 3) -> dict:
     last_text, last_problems = "", ["生成できなかった"]
 
     for attempt in range(1, max_retry + 1):
-        text = call_claude(system, user)
+        text = extract_post(call_claude(system, user))
         problems = check(text, article["title"])
         if not problems:
             return {"text": text, "status": "draft", "problems": [], "attempts": attempt}
