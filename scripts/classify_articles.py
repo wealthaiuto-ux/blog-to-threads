@@ -45,27 +45,41 @@ def fetch_posts() -> list[dict]:
         return json.loads(resp.read())
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--force", action="store_true",
-                    help="既存の分類も再判定して上書きする（手で直した内容は消える）")
-    args = ap.parse_args()
+def sync(force: bool = False) -> dict:
+    """公開記事を取り出して分類し、article_themes.json を更新する。
 
+    生成ジョブからも呼ぶので、標準出力に何も書かず結果だけ返す。
+    既存の分類は上書きしない（手で直した内容を守るため。force=True のときだけ再判定）。
+
+    戻り値: {"total": int, "added": [title...], "unclassified": [title...], "counts": {...}}
+    """
     existing: dict[str, dict] = {}
     if OUT_PATH.exists():
         existing = {e["url"]: e for e in json.loads(OUT_PATH.read_text(encoding="utf-8"))}
 
     out: list[dict] = []
     unclassified: list[str] = []
+    added: list[str] = []
     for p in fetch_posts():
         title = re.sub(r"<[^>]+>", "", p["title"]["rendered"])
         url = p["link"]
-        if not args.force and url in existing:
-            out.append(existing[url])
+        if not force and url in existing:
+            entry = existing[url]
+            # 以前は分類できなかった記事を、RULES 追加後に拾い直す
+            if not entry.get("theme"):
+                theme = classify(title)
+                if theme:
+                    entry = {**entry, "theme": theme}
+                    added.append(title)
+            out.append(entry)
+            if not entry.get("theme"):
+                unclassified.append(title)
             continue
         theme = classify(title)
         if theme is None:
             unclassified.append(title)
+        else:
+            added.append(title)
         out.append({"url": url, "title": title, "date": p["date"][:10], "theme": theme})
 
     OUT_PATH.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -73,7 +87,18 @@ def main() -> int:
     counts: dict[str, int] = {}
     for e in out:
         counts[e["theme"] or "(未分類)"] = counts.get(e["theme"] or "(未分類)", 0) + 1
-    print(f"[ok] {len(out)}本 -> {OUT_PATH.name}")
+    return {"total": len(out), "added": added, "unclassified": unclassified, "counts": counts}
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--force", action="store_true",
+                    help="既存の分類も再判定して上書きする（手で直した内容は消える）")
+    args = ap.parse_args()
+
+    res = sync(force=args.force)
+    counts, unclassified = res["counts"], res["unclassified"]
+    print(f"[ok] {res['total']}本 -> {OUT_PATH.name}")
     for k, v in sorted(counts.items(), key=lambda x: -x[1]):
         print(f"  {k}: {v}")
     if unclassified:

@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import classify_articles  # type: ignore
 import crawl_blog  # type: ignore
 import fetch_article  # type: ignore
 import generate_post  # type: ignore
@@ -64,13 +65,19 @@ def main() -> int:
     try:
         items = crawl_blog.fetch_feed()
         crawl_blog.save_cache(items)
-        known = {a["url"].rstrip("/") for a in playbook.load_articles()}
-        unknown = [a for a in items if a["url"].rstrip("/") not in known]
-        if unknown:
-            print(f"[warn] 未分類の新着記事が{len(unknown)}本あります。"
-                  f"classify_articles.py を実行してください", file=sys.stderr)
-            for a in unknown[:5]:
-                print(f"        - {a['title'][:50]}", file=sys.stderr)
+
+        # 新着はその場で分類して在庫に入れる（キーワード規則なのでAPIキーは要らない）。
+        # 既存の分類は上書きしないので、手で直したテーマは守られる。
+        res = classify_articles.sync()
+        if res["added"]:
+            print(f"[classify] 新着{len(res['added'])}本を在庫に追加", file=sys.stderr)
+            for t in res["added"][:5]:
+                print(f"        + {t[:50]}", file=sys.stderr)
+        if res["unclassified"]:
+            print(f"[warn] キーワードに当たらず在庫に入らない記事が{len(res['unclassified'])}本。"
+                  f"classify_articles.py の RULES にキーワードを足してください", file=sys.stderr)
+            for t in res["unclassified"][:5]:
+                print(f"        - {t[:50]}", file=sys.stderr)
     except SystemExit as e:
         print(f"[warn] ブログのクロールに失敗（{e}）。"
               f"新着検知はスキップし、既存の在庫で生成を続けます", file=sys.stderr)
