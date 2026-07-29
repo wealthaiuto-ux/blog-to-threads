@@ -69,7 +69,8 @@ def db_properties() -> dict:
 
 def save_single(article: dict, text: str, *, post_type: str, theme: str,
                 status: str = "draft", problems: list[str] | None = None,
-                image_url: str | None = None, reply_text: str | None = None) -> str:
+                image_url: str | None = None, reply_text: str | None = None,
+                neta_empty: bool = False) -> str:
     """単発投稿を1ページ作成する（v3）。
 
     本文は「投稿1」に入れる。リンクを置く回だけ「投稿2」にリプを入れる
@@ -109,6 +110,13 @@ def save_single(article: dict, text: str, *, post_type: str, theme: str,
     note = f"型: {post_type} ／ テーマ: {theme}"
     if problems:
         note += f"\n⚠ 自動検査に通らなかった項目: {' / '.join(problems)}"
+    # 記事は「整理されたあとの情報」なので、切り抜くと要約になり温度が下がる。
+    # ネタ帳（その日の生の一言）が主役で、記事はその下支え。
+    # 承認するときに必ず目に入る場所でだけ知らせる（別途の通知は増やさない）。
+    if neta_empty:
+        note += ("\n💡 ネタ帳が空だったので記事から作りました。"
+                 "「今日払った額」「思ってたのと違ったこと」「イラッとしたこと」を"
+                 "ステータス=ネタ で1行入れておくと、次はそちらが優先されます")
     _request("PATCH", f"/blocks/{page_id}/children", {"children": [{
         "object": "block",
         "type": "callout",

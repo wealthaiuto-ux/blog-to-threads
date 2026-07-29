@@ -114,6 +114,11 @@ def main() -> int:
 
     if neta_list:
         print(f"[neta] ネタ帳から{len(neta_list)}本消化。残り{remaining}本をブログから生成", file=sys.stderr)
+    elif not args.dry_run:
+        print("[neta] ネタ帳が空。記事から生成する（記事は下支えで、ネタの方が強い）", file=sys.stderr)
+
+    # ネタ帳が空のまま記事に落ちたことを、承認画面の注記で知らせる
+    neta_empty = not neta_list and not args.dry_run
 
     used_urls: set[str] = set()
     for i in range(remaining):
@@ -163,6 +168,7 @@ def main() -> int:
             status=result["status"],
             problems=result["problems"],
             reply_text=reply_text,
+            neta_empty=neta_empty,
         )
         _append_gen_log({
             "article_url": meta["url"],
