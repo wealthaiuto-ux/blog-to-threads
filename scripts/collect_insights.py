@@ -138,6 +138,10 @@ def main() -> int:
             "collected_at": now.isoformat(),
             "age_hours": round(age_hours, 1),
             **{m: metrics.get(m, 0) for m in METRICS},
+            # Threads の replies には自分のツリー返信も含まれる。
+            # 読者の反応として使えるのはそれを引いた数（v2の3連ツリー時代は
+            # 全投稿が +2 され、読者リプ0でも「2」に見えていた）。
+            "reader_replies": max(0, metrics.get("replies", 0) - max(0, entry.get("post_count", 1) - 1)),
             "status": "ok",
             "attempts": 0,
         }

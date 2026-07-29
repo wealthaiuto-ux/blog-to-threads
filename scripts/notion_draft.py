@@ -69,10 +69,11 @@ def db_properties() -> dict:
 
 def save_single(article: dict, text: str, *, post_type: str, theme: str,
                 status: str = "draft", problems: list[str] | None = None,
-                image_url: str | None = None) -> str:
+                image_url: str | None = None, reply_text: str | None = None) -> str:
     """単発投稿を1ページ作成する（v3）。
 
-    ツリーではなく単発なので本文は「投稿1」にだけ入れる。
+    本文は「投稿1」に入れる。リンクを置く回だけ「投稿2」にリプを入れる
+    （毎回リンクを付けると宣伝アカウントに見えるため、付ける回は run_generate 側で絞る）。
     型・テーマは月次レビューの比較軸になるが、Notion側は表示用。
     実際の分析は data/generated_log.json と posted_log.json を使う。
     """
@@ -83,6 +84,8 @@ def save_single(article: dict, text: str, *, post_type: str, theme: str,
         "記事URL": {"url": article.get("url")},
         "投稿1": {"rich_text": _rt(text)},
     }
+    if reply_text:
+        props["投稿2"] = {"rich_text": _rt(reply_text)}
     if image_url:
         props["画像URL"] = {"url": image_url}
 
@@ -145,10 +148,9 @@ def _page_to_draft(page: dict) -> dict:
         items = props.get(name, {}).get("rich_text") or []
         return "".join(i.get("plain_text", "") for i in items)
 
-    posts = [_read_rt("投稿1"), _read_rt("投稿2")]
-    p3 = _read_rt("投稿3")
-    if p3.strip():
-        posts.append(p3)
+    # v3は単発が基本で、投稿2・投稿3は空のことが多い。
+    # 空のまま渡すと空文字のリプライを投稿しようとして落ちるので、ここで捨てる。
+    posts = [t for t in (_read_rt("投稿1"), _read_rt("投稿2"), _read_rt("投稿3")) if t.strip()]
 
     return {
         "page_id": page["id"],

@@ -86,7 +86,12 @@ def main() -> int:
         set_output("stock_out", "true")
         return 0
 
-    print(f"[picked] {draft['title'][:40]}... (page={draft['page_id']})")
+    if not draft["posts"]:
+        print(f"[skip] 本文が空のドラフト（page={draft['page_id']}）、投稿しない")
+        set_output("stock_out", "true")
+        return 0
+
+    print(f"[picked] {draft['title'][:40]}... (page={draft['page_id']}, {len(draft['posts'])}投稿)")
 
     if args.dry_run:
         for i, p in enumerate(draft["posts"], 1):

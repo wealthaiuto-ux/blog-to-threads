@@ -30,6 +30,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      # 毎日きっちり同じ時刻に投稿されるのは自動投稿アカウントの見た目そのものなので、
+      # 0〜50分ぶんランダムに遅らせる。手動実行(workflow_dispatch)では待たない。
+      - name: Random delay
+        if: github.event_name == 'schedule'
+        run: |
+          delay=$(( RANDOM % 3000 ))
+          echo "投稿まで ${delay} 秒待機します"
+          sleep "$delay"
+
       - name: Post oldest approved draft
         id: post
         env:

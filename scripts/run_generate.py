@@ -1,18 +1,19 @@
 """生成ジョブ（v3）：playbook が決めた型・テーマ・記事で単発投稿を1本作り、Notionに保存する。
 
 v2 までとの違い:
-  - ツリー生成 → 単発生成（generate_tree.py ではなく generate_post.py）
+  - ツリー生成 → 単発生成（generate_post.py）
   - 記事選択が「新着70%のランダム」→ playbook.py（未使用優先・型との組み合わせ管理）
   - 生成物を機械フィルタに通し、通らなければ needs_fix で保存して人には出さない
   - generated_log に post_type / theme を記録する（月次レビューの比較軸になる）
 
 設計の全体像は REDESIGN.md、ルールは CLAUDE.md を参照。
-旧ツリー版は generate_tree.py に残してあるが、v3 では使っていない。
+旧ツリー版（generate_tree.py / maybe_image.py / run_once.py）は 2026-07-29 に削除した。
 """
 from __future__ import annotations
 
 import argparse
 import json
+import random
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,6 +53,9 @@ def main() -> int:
     pb = playbook.load_playbook()
     for w in playbook.check_inventory(pb):
         print(f"[warn] {w}", file=sys.stderr)
+
+    # リンク付き投稿の割合（既定 1/3）。リンク無しを過半にしておくための上限。
+    link_ratio = float(pb.get("rules", {}).get("link_reply_ratio", 0.34))
 
     # 記事キャッシュを更新し、分類ファイルに無い新着があれば知らせる。
     # ここはブログの生死に依存する処理なので、失敗しても生成は止めない。
@@ -121,7 +125,17 @@ def main() -> int:
         result = generate_post.generate(
             decision, article, max_retry=pb.get("rules", {}).get("max_filter_retry", 3))
 
-        header = f"[{decision['post_type']}] [{decision['theme']}] {article['title'][:36]}"
+        # リンクを付けるのは一定割合だけ。毎回リンクが付いている状態は、
+        # 内容に関係なく「ブログ誘導アカウント」として認識されるため。
+        # 検査に落ちた投稿にはリプを付けない（人が直す前提のものにリンクを足しても意味がない）。
+        reply_text = None
+        if result["status"] == "draft" and random.random() < link_ratio:
+            reply_text = generate_post.generate_link_reply(
+                article, result["text"],
+                max_retry=pb.get("rules", {}).get("max_filter_retry", 3))
+
+        header = (f"[{decision['post_type']}] [{decision['theme']}]"
+                  f"{' [link]' if reply_text else ''} {article['title'][:36]}")
         if args.dry_run:
             print(f"\n=== {header} ===")
             print(f"status: {result['status']}  attempts: {result['attempts']}")
@@ -129,6 +143,9 @@ def main() -> int:
                 print(f"problems: {' / '.join(result['problems'])}")
             print("-" * 40)
             print(result["text"])
+            if reply_text:
+                print("--- リプ（リンク） ---")
+                print(reply_text)
             print("-" * 40)
             continue
 
@@ -138,12 +155,14 @@ def main() -> int:
             theme=decision["theme"],
             status=result["status"],
             problems=result["problems"],
+            reply_text=reply_text,
         )
         _append_gen_log({
             "article_url": meta["url"],
             "article_title": article["title"],
             "post_type": decision["post_type"],
             "theme": decision["theme"],
+            "has_link": bool(reply_text),
             "status": result["status"],
             "attempts": result["attempts"],
             "notion_page_id": page_id,

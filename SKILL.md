@@ -96,19 +96,15 @@ python3 scripts/run_post.py             # 実投稿
 - 30%: それ以降の過去記事からランダム
 - 過去7日以内に投稿した記事は除外（`posted_log.json` 参照）
 
-## 画像差し込み
+## 画像差し込み（2026-07-29 廃止）
 
-**50%確率** で1投稿目に **Nano Banana 生成画像** を添付（主人公キャラ固定）。
-仕組み：
+v2では50%の確率でNano Banana生成のインフォグラフィックを添付していたが、**廃止した**。
 
-1. Claudeが `image_prompt`（英語1文）を生成
-2. `maybe_image.py` が Nano Banana (gemini-3.1-flash-image-preview) で画像生成
-3. `data/generated/thread_xxx.png` に保存
-4. Actions が repo にコミット → `raw.githubusercontent.com/.../data/generated/xxx.png` が公開URLになる
-5. このURLを Notion DBの `画像URL` に保存、Threads投稿時に1投稿目へ添付
-
-主人公リファレンスは `assets/character.jpg` に同梱（リポジトリのみ）。
-画像生成コストは約$0.04/枚 × 約45枚/月 = **約$1.8/月**。
+- 41投稿中40本に画像が付き、しかも毎回同じレイアウト＋「詳しくはブログで → chanko06.com」の
+  フッター入りだった。広告として認識される見た目そのもので、いいね率0.11%の一因と判断した
+- `maybe_image.py` は削除済み。`GOOGLE_AI_API_KEY` はこのリポジトリでは不要になった
+- 画像を付けるなら、生成物ではなく**自分で撮った写真**（見積書・設置後・使用中）を手で添付する。
+  こちらは実測アカウントの信用に効くので推奨
 
 ## ファイル構成
 
@@ -117,8 +113,7 @@ scripts/
   crawl_blog.py         RSS取得 → data/articles_cache.json
   pick_article.py       記事選定（新着+過去ランダム）
   fetch_article.py      記事本文 + og:image 抽出
-  generate_tree.py      Claude APIでツリー本文生成
-  maybe_image.py        Nano Banana画像生成（将来用）
+  generate_post.py      Claude APIで単発投稿を生成＋機械検査
   post_threads.py       Threads API でツリー投稿
   notion_draft.py       Notion DBへ保存/取得/更新
   run_generate.py       生成ジョブのエントリポイント
@@ -145,7 +140,7 @@ data/
 | `NOTION_DATABASE_ID` | 上記DBのID（省略時は既定値） |
 | `THREADS_ACCESS_TOKEN` | Threads投稿 |
 | `THREADS_USER_ID` | Threadsユーザー ID |
-| `GOOGLE_AI_API_KEY` | Nano Banana画像生成（50%確率で使用） |
+| ~~`GOOGLE_AI_API_KEY`~~ | 画像生成の廃止により不要（2026-07-29） |
 
 ## エラーハンドリング方針
 
@@ -153,7 +148,7 @@ data/
 - RSS失敗 → リトライ3回 → 諦めて翌回
 - Claude API失敗 → 1案分だけ落として続行
 - Threads API失敗 → Notionステータスは draft/approved のまま → 翌回再試行
-- 画像生成失敗 → 画像なしで投稿継続
+- 画像は自動生成しない（2026-07-29廃止）
 
 「投稿できなかった日があってもいい」が「壊れて気づかない」のはダメ。
 
