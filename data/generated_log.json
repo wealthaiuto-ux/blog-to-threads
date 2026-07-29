@@ -175,5 +175,38 @@
     "attempts": 1,
     "notion_page_id": "3ac9e4c0-5c9c-8136-afd7-ee2cedbf6d81",
     "generated_at": "2026-07-29T13:40:00.771753+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/electricity-cost-control/",
+    "article_title": "電気代は「固定費」じゃない—元商社マンが家族3人で実践した、コントロールする方法 | ちゃんこ ライフハックブログ",
+    "post_type": "質問型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3ac9e4c0-5c9c-81cc-8b6e-ffdccc2da143",
+    "generated_at": "2026-07-29T14:01:13.825410+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/lamdash-palmin-es-pv3a-vs-es-pv6a/",
+    "article_title": "ES-PV3AとES-PV6Aの違いは3つ｜剃り味は同じ？2年使った結論 | ちゃんこ ライフハックブログ",
+    "post_type": "質問型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3ac9e4c0-5c9c-8143-a526-cc6b60b4c0f7",
+    "generated_at": "2026-07-29T14:01:25.368746+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/notta-memo-review/",
+    "article_title": "Notta Memoレビュー｜自費購入して電話録音に使った本音",
+    "post_type": "向いてない型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3ac9e4c0-5c9c-81d7-96e1-c72e397a612b",
+    "generated_at": "2026-07-29T14:01:44.103249+00:00"
   }
 ]
