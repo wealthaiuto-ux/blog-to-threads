@@ -5,6 +5,7 @@ import argparse
 import json
 import re
 import sys
+import time
 from html.parser import HTMLParser
 from urllib.request import Request, urlopen
 
@@ -47,19 +48,45 @@ class _Extractor(HTMLParser):
                 self.parts.append(text)
 
 
-def fetch(url: str) -> dict:
-    req = Request(url, headers={"User-Agent": "blog-to-threads/1.0"})
-    with urlopen(req, timeout=20) as resp:
-        html = resp.read().decode("utf-8", errors="replace")
-    p = _Extractor()
-    p.feed(html)
-    body = re.sub(r"\s+", " ", " ".join(p.parts)).strip()
-    return {
-        "url": url,
-        "title": p.title or "",
-        "body": body[:4000],
-        "og_image": p.og_image,
-    }
+# ボット保護の待機ページ。本文が空のまま生成に流すと、モデルが
+# 「記事本文をご提供ください」と書いた文章を投稿案として保存してしまう。
+CHALLENGE_TITLES = ("one moment", "just a moment", "attention required",
+                    "checking your browser", "アクセスが制限")
+MIN_BODY_LEN = 400
+
+
+def fetch(url: str, retries: int = 2) -> dict:
+    """記事本文を取り出す。取れなければ SystemExit（呼び元がその記事をスキップする）。
+
+    短時間に連続アクセスするとボット保護の待機ページが返るので、
+    その場合は少し待って取り直す。中身が薄いまま返さないこと。
+    """
+    last = ""
+    for attempt in range(1, retries + 2):
+        req = Request(url, headers={"User-Agent": "blog-to-threads/1.0"})
+        with urlopen(req, timeout=20) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+        p = _Extractor()
+        p.feed(html)
+        body = re.sub(r"\s+", " ", " ".join(p.parts)).strip()
+        title = p.title or ""
+
+        blocked = any(k in title.lower() for k in CHALLENGE_TITLES)
+        if not blocked and len(body) >= MIN_BODY_LEN:
+            return {
+                "url": url,
+                "title": title,
+                "body": body[:4000],
+                "og_image": p.og_image,
+            }
+
+        last = (f"ボット保護の待機ページ（title={title[:40]}）" if blocked
+                else f"本文が短すぎる（{len(body)}字 < {MIN_BODY_LEN}字）")
+        if attempt <= retries:
+            print(f"[retry] {url} — {last}", file=sys.stderr)
+            time.sleep(20 * attempt)
+
+    raise SystemExit(f"記事本文を取得できなかった: {last}")
 
 
 def main() -> int:
