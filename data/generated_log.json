@@ -142,5 +142,38 @@
     "attempts": 1,
     "notion_page_id": "3ab9e4c0-5c9c-81ed-9c82-f6cabe4fc8e0",
     "generated_at": "2026-07-28T14:29:36.236400+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/richell_bouncer-review-4recommends/",
+    "article_title": "リッチェル バウンサー SGマーク・口コミ比較｜4種類から選ぶポイント【購入者レビュー】 | ちゃんこ ライフハックブログ",
+    "post_type": "向いてない型",
+    "theme": "育児",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3ac9e4c0-5c9c-8187-bcbc-e6bc43bf77fc",
+    "generated_at": "2026-07-29T13:39:41.830634+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/octopus-energy-demerit-review/",
+    "article_title": "オクトパスエナジーのデメリット4つ【1年使った共働き家族の正直レビュー】 | ちゃんこ ライフハックブログ",
+    "post_type": "失敗談型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3ac9e4c0-5c9c-81f2-b6c8-f6cd6611b270",
+    "generated_at": "2026-07-29T13:39:53.054952+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/furusato-kosodate-osusume/",
+    "article_title": "ふるさと納税 子育て世帯におすすめの返礼品6選【2026年版・共働き家族の選び方基準も公開】 | ちゃんこ ライフハックブログ",
+    "post_type": "1コマ型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3ac9e4c0-5c9c-8136-afd7-ee2cedbf6d81",
+    "generated_at": "2026-07-29T13:40:00.771753+00:00"
   }
 ]
