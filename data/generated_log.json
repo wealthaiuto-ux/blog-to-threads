@@ -252,5 +252,27 @@
     "attempts": 2,
     "notion_page_id": "3ae9e4c0-5c9c-8182-be14-d6ddebff419e",
     "generated_at": "2026-07-31T14:29:30.381276+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/notta-memo-battery-life/",
+    "article_title": "Notta Memoの電池持ちは？電池切れの体験と充電対策",
+    "post_type": "逆張り型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3af9e4c0-5c9c-812e-8eb9-d4932952985d",
+    "generated_at": "2026-08-01T13:46:37.744242+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/notta-memo-phone-recording/",
+    "article_title": "Notta Memoで電話録音する使い方｜アプリ・PCで確認",
+    "post_type": "実測値型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3af9e4c0-5c9c-8198-b90c-c3b5efb191c5",
+    "generated_at": "2026-08-01T13:46:47.269363+00:00"
   }
 ]
