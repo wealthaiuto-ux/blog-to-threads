@@ -274,5 +274,27 @@
     "attempts": 1,
     "notion_page_id": "3af9e4c0-5c9c-8198-b90c-c3b5efb191c5",
     "generated_at": "2026-08-01T13:46:47.269363+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/b-ring-size-guide/",
+    "article_title": "b.ringのサイズ選び｜US10購入者の結論",
+    "post_type": "失敗談型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3b09e4c0-5c9c-8191-adc6-e568a499aecc",
+    "generated_at": "2026-08-02T13:46:37.570242+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/octopus-energy-price-comparison/",
+    "article_title": "オクトパスエナジーと中部電力を比較｜名古屋3人家族の実費",
+    "post_type": "質問型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "needs_fix",
+    "attempts": 3,
+    "notion_page_id": "3b09e4c0-5c9c-8126-a81e-ded5931c39d0",
+    "generated_at": "2026-08-02T13:46:54.766809+00:00"
   }
 ]
