@@ -318,5 +318,27 @@
     "attempts": 1,
     "notion_page_id": "3b19e4c0-5c9c-81e4-9a7b-c0d4f67630ae",
     "generated_at": "2026-08-03T15:10:22.001429+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/b-ring-g2-review/",
+    "article_title": "b.ring G2 レビュー｜5ヶ月使った睡眠・電池の本音",
+    "post_type": "逆張り型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3b29e4c0-5c9c-81b4-9364-c49dcb57ccfd",
+    "generated_at": "2026-08-04T14:34:56.139705+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/bubs_goat_organic-3points/",
+    "article_title": "バブズミルクはどれを選ぶ？ヤギ・牛ミルクの違いと選び方を購入者が比較 | ちゃんこ ライフハックブログ",
+    "post_type": "実測値型",
+    "theme": "育児",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3b29e4c0-5c9c-81f0-a07e-fecc959cffdf",
+    "generated_at": "2026-08-04T14:35:05.822923+00:00"
   }
 ]
