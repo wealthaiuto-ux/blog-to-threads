@@ -340,5 +340,27 @@
     "attempts": 1,
     "notion_page_id": "3b29e4c0-5c9c-81f0-a07e-fecc959cffdf",
     "generated_at": "2026-08-04T14:35:05.822923+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/octopus-energy-taiken-review/",
+    "article_title": "オクトパスエナジーの評判は怪しい？契約者の口コミ・実体験",
+    "post_type": "失敗談型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3b39e4c0-5c9c-813d-b8e1-cd2426f6d8f7",
+    "generated_at": "2026-08-05T14:27:38.785069+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/octopus_energy_my_conclusion/",
+    "article_title": "オクトパスエナジーの評判は怪しい？契約者の口コミ・実体験",
+    "post_type": "質問型",
+    "theme": "電力・お金",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3b39e4c0-5c9c-81d3-81c7-eb678d103870",
+    "generated_at": "2026-08-05T14:27:53.674817+00:00"
   }
 ]
