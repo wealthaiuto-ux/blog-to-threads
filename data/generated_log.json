@@ -362,5 +362,27 @@
     "attempts": 2,
     "notion_page_id": "3b39e4c0-5c9c-81d3-81c7-eb678d103870",
     "generated_at": "2026-08-05T14:27:53.674817+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/furusato_disaster_prevention_6goods/",
+    "article_title": "ふるさと納税でおすすめしたい防災グッズの返礼品6選！人気最新ランキング！ | ちゃんこ ライフハックブログ",
+    "post_type": "逆張り型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3b49e4c0-5c9c-8150-a4e3-d96bf6880378",
+    "generated_at": "2026-08-06T14:30:22.239386+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/fudosan-shinyou-dekinai/",
+    "article_title": "不動産仲介が信用できないと感じたら？AIとFPで悪い担当者を見抜いた新築3,500万円の住宅ローン体験談【2026年】 | ちゃんこ ライフハックブログ",
+    "post_type": "実測値型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "needs_fix",
+    "attempts": 3,
+    "notion_page_id": "3b49e4c0-5c9c-8183-a13b-f0a040dd8451",
+    "generated_at": "2026-08-06T14:30:41.103407+00:00"
   }
 ]
