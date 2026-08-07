@@ -384,5 +384,27 @@
     "attempts": 3,
     "notion_page_id": "3b49e4c0-5c9c-8183-a13b-f0a040dd8451",
     "generated_at": "2026-08-06T14:30:41.103407+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/zehitomo-aircon-review/",
+    "article_title": "ゼヒトモの評判は怪しい？エアコン工事費18万8,650円の口コミ",
+    "post_type": "1コマ型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3b59e4c0-5c9c-81cd-bc9f-ec4bfbbbfee3",
+    "generated_at": "2026-08-07T13:22:25.213238+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/kantakun-filter-cleaning/",
+    "article_title": "乾太くんのフィルター掃除は毎回必要？RDT-93なら約1分",
+    "post_type": "向いてない型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3b59e4c0-5c9c-81f2-8ee8-d8db5671defa",
+    "generated_at": "2026-08-07T13:22:34.768584+00:00"
   }
 ]
