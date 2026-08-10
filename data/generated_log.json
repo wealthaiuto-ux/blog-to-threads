@@ -428,5 +428,27 @@
     "attempts": 1,
     "notion_page_id": "3b79e4c0-5c9c-8129-ad18-f514bed977b4",
     "generated_at": "2026-08-09T13:08:15.619694+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/kantakun-vs-drum-shiki-hikaku/",
+    "article_title": "【比較】乾太くん vs ドラム式洗濯乾燥機：共働き家庭が乾太くんを選んだ3つの理由 | ちゃんこ ライフハックブログ",
+    "post_type": "1コマ型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3b89e4c0-5c9c-81c9-9e34-e91376080116",
+    "generated_at": "2026-08-10T13:35:11.427192+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/bubs-goatmilk-baby-review/",
+    "article_title": "バブズのヤギミルクは赤ちゃんに与えていい？生乳との違いと1年使った本音 | ちゃんこ ライフハックブログ",
+    "post_type": "向いてない型",
+    "theme": "育児",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3b89e4c0-5c9c-81f8-894c-c2eac2d9fff5",
+    "generated_at": "2026-08-10T13:35:24.460558+00:00"
   }
 ]
