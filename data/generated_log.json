@@ -472,5 +472,27 @@
     "attempts": 3,
     "notion_page_id": "3b99e4c0-5c9c-819c-bf52-ed6b2032b759",
     "generated_at": "2026-08-11T13:24:23.465426+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/lamdash-palmin-5blade-vs-lite/",
+    "article_title": "【比較】ラムダッシュ パームイン「5枚刃」と「LITE(3枚刃)」どっちを買うべき？違いを徹底解説 | ちゃんこ ライフハックブログ",
+    "post_type": "質問型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "needs_fix",
+    "attempts": 3,
+    "notion_page_id": "3ba9e4c0-5c9c-81fb-9ecf-dd959b9d2f90",
+    "generated_at": "2026-08-12T13:35:20.491484+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/furusato_recommend-5selections/",
+    "article_title": "一人暮らし男性向けふるさと納税おすすめ8選｜自炊で食費を抑えた実例",
+    "post_type": "失敗談型",
+    "theme": "電力・お金",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3ba9e4c0-5c9c-81b5-bddb-df3955fdd533",
+    "generated_at": "2026-08-12T13:35:36.067117+00:00"
   }
 ]
