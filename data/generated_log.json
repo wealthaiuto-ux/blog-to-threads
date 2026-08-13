@@ -494,5 +494,27 @@
     "attempts": 2,
     "notion_page_id": "3ba9e4c0-5c9c-81b5-bddb-df3955fdd533",
     "generated_at": "2026-08-12T13:35:36.067117+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/aircon-10years-replace/",
+    "article_title": "エアコンの寿命は10年？修理か買い替えか判断する7つの基準 | ちゃんこ ライフハックブログ",
+    "post_type": "向いてない型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3bb9e4c0-5c9c-8145-ace4-c06ac08fbb10",
+    "generated_at": "2026-08-13T13:36:41.483169+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/kantakun-features/",
+    "article_title": "乾太くん（RDT-93）の機能・モード一覧｜花粉モードなど意外と知らない便利機能まとめ | ちゃんこ ライフハックブログ",
+    "post_type": "1コマ型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3bb9e4c0-5c9c-8127-a99e-fa1587dff6b0",
+    "generated_at": "2026-08-13T13:36:49.609479+00:00"
   }
 ]
