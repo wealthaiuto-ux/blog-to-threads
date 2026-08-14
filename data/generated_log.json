@@ -516,5 +516,27 @@
     "attempts": 1,
     "notion_page_id": "3bb9e4c0-5c9c-8127-a99e-fa1587dff6b0",
     "generated_at": "2026-08-13T13:36:49.609479+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/kantakun-demerit/",
+    "article_title": "乾太くんのデメリット5つ｜それでも買い直す理由",
+    "post_type": "実測値型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3bc9e4c0-5c9c-818d-be2e-e67f37cbfd6d",
+    "generated_at": "2026-08-14T13:24:51.856301+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/lamdash-palmin-recall/",
+    "article_title": "ラムダッシュ パームイン リコール対象？ES-PV3A交換手順",
+    "post_type": "逆張り型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3bc9e4c0-5c9c-8120-80f8-d08af9866f7b",
+    "generated_at": "2026-08-14T13:25:00.717970+00:00"
   }
 ]
