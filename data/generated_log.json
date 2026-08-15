@@ -538,5 +538,27 @@
     "attempts": 1,
     "notion_page_id": "3bc9e4c0-5c9c-8120-80f8-d08af9866f7b",
     "generated_at": "2026-08-14T13:25:00.717970+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/aircon-cleaning-or-replace/",
+    "article_title": "エアコンの黒い水はカビ？2台9,960円で清掃した結果と注意点 | ちゃんこ ライフハックブログ",
+    "post_type": "1コマ型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3bd9e4c0-5c9c-8196-9dbe-e43ff92845ab",
+    "generated_at": "2026-08-15T12:53:28.860542+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/electricity-cost-control/",
+    "article_title": "電気代は「固定費」じゃない—元商社マンが家族3人で実践した、コントロールする方法 | ちゃんこ ライフハックブログ",
+    "post_type": "実測値型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3bd9e4c0-5c9c-81b5-a57c-cacc4786a18f",
+    "generated_at": "2026-08-15T12:53:37.093758+00:00"
   }
 ]
