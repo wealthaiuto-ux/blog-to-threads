@@ -560,5 +560,27 @@
     "attempts": 1,
     "notion_page_id": "3bd9e4c0-5c9c-81b5-a57c-cacc4786a18f",
     "generated_at": "2026-08-15T12:53:37.093758+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/notta-memo-battery-life/",
+    "article_title": "Notta Memoの電池持ちは？電池切れの体験と充電対策",
+    "post_type": "失敗談型",
+    "theme": "家電",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3be9e4c0-5c9c-8152-98f7-fd665dab91ec",
+    "generated_at": "2026-08-16T12:54:38.598209+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/aircon-online-vs-store/",
+    "article_title": "エアコンはどこで買う？ネット・家電量販店・工事込みの総額比較と注意点 | ちゃんこ ライフハックブログ",
+    "post_type": "質問型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3be9e4c0-5c9c-8137-9cf8-f947b02b77fa",
+    "generated_at": "2026-08-16T12:54:49.819063+00:00"
   }
 ]
