@@ -582,5 +582,27 @@
     "attempts": 2,
     "notion_page_id": "3be9e4c0-5c9c-8137-9cf8-f947b02b77fa",
     "generated_at": "2026-08-16T12:54:49.819063+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/b-ring-size-guide/",
+    "article_title": "b.ringのサイズ選び｜US10購入者の結論",
+    "post_type": "向いてない型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3bf9e4c0-5c9c-8123-929c-f84dfe0c1641",
+    "generated_at": "2026-08-17T12:59:45.510404+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/nell-mattress-regret/",
+    "article_title": "ネルマットレスで後悔する？1ヶ月使った私が購入前に確認すべき4点を解説 | ちゃんこ ライフハックブログ",
+    "post_type": "1コマ型",
+    "theme": "住まい",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3bf9e4c0-5c9c-8169-9c64-fcdbb1f429f4",
+    "generated_at": "2026-08-17T12:59:53.237032+00:00"
   }
 ]
