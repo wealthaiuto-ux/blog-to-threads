@@ -160,12 +160,20 @@ def _page_to_draft(page: dict) -> dict:
     # 空のまま渡すと空文字のリプライを投稿しようとして落ちるので、ここで捨てる。
     posts = [t for t in (_read_rt("投稿1"), _read_rt("投稿2"), _read_rt("投稿3")) if t.strip()]
 
+    def _read_select(name: str) -> str | None:
+        sel = props.get(name, {}).get("select")
+        return sel.get("name") if isinstance(sel, dict) else None
+
     return {
         "page_id": page["id"],
         "article_url": props.get("記事URL", {}).get("url"),
         "title": "".join(t.get("plain_text", "") for t in props.get("タイトル", {}).get("title", [])),
         "posts": posts,
         "image_url": props.get("画像URL", {}).get("url"),
+        # 2026-08-19 追加。生成時に決めた型・テーマをここで拾い直し、投稿ログ経由で
+        # insights まで運ぶ。これが無いと「どの型が効いたか」が集計で永久に出せない。
+        "post_type": _read_select("型"),
+        "theme": _read_select("テーマ"),
     }
 
 

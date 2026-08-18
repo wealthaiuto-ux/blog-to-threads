@@ -114,6 +114,10 @@ def main() -> int:
         "post_count": len(draft["posts"]),
         "had_image": bool(draft.get("image_url")),
         "notion_page_id": draft["page_id"],
+        # 型・テーマは collect_insights がここから読んで insights.json に入れる。
+        # 投稿の瞬間に残さないと後から復元できないので、必ずログに書く。
+        "post_type": draft.get("post_type"),
+        "theme": draft.get("theme"),
     })
     print("[log] appended")
     return 0

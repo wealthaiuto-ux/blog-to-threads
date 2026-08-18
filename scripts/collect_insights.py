@@ -31,7 +31,9 @@ POSTED_LOG = ROOT / "data" / "posted_log.json"
 OUT_PATH = ROOT / "data" / "insights.json"
 
 GRAPH = "https://graph.threads.net/v1.0"
-METRICS = ["views", "likes", "replies", "reposts", "quotes"]
+# shares は 2026-08-19 に追加。紹介意図（外部へ持ち出された回数）の代理指標で、
+# いいねより「次の読者を連れてくる」に近い。過去分は遡れないので、この日以降のみ入る。
+METRICS = ["views", "likes", "replies", "reposts", "quotes", "shares"]
 MIN_AGE_HOURS = 48
 MAX_ATTEMPTS = 3
 

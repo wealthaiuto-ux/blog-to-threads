@@ -51,6 +51,56 @@ def fetch_followers(user_id: str, token: str) -> int:
     raise SystemExit(f"followers_count が応答に含まれていない: {json.dumps(body, ensure_ascii=False)[:300]}")
 
 
+def fetch_profile_views(user_id: str, token: str) -> dict[str, int]:
+    """アカウント単位の views（＝プロフィールが見られた回数）を日別で取る。
+
+    2026-08-19 追加。投稿ビュー → プロフィール表示 → フォロー のファネルのうち、
+    真ん中がこれ。KPIがフォロワーである以上、投稿ビューより後段のこの数字の方が
+    フォローに近い先行指標になる。
+
+    日別の時系列で返り、end_time は「その24時間が終わる時刻」（UTC 07:00 = JST 16:00）。
+    厳密には前日16時〜当日16時の集計なので、日付ラベルは end_time の日付を採用する。
+    """
+    qs = urlencode({"metric": "views", "period": "day", "access_token": token})
+    url = f"{GRAPH}/{user_id}/threads_insights?{qs}"
+    try:
+        with urlopen(url, timeout=30) as resp:
+            body = json.loads(resp.read())
+    except HTTPError as e:
+        detail = e.read().decode("utf-8", errors="replace")[:300]
+        print(f"[warn] プロフィール表示の取得に失敗（{e.code}）: {detail}", file=sys.stderr)
+        return {}
+
+    out: dict[str, int] = {}
+    for entry in body.get("data", []):
+        if entry.get("name") != "views":
+            continue
+        for v in entry.get("values") or []:
+            end = v.get("end_time") or ""
+            if end and "value" in v:
+                out[end[:10]] = int(v["value"])
+    return out
+
+
+def merge_profile_views(path: Path, views_by_date: dict[str, int]) -> int:
+    """取得できた日別プロフィール表示を、既存レコードに後から埋める。
+
+    フォロワー数と違い数日分まとめて返るので、過去分の穴も自然に埋まる。
+    """
+    if not views_by_date or not path.exists():
+        return 0
+    records = json.loads(path.read_text(encoding="utf-8"))
+    filled = 0
+    for r in records:
+        v = views_by_date.get(r.get("date"))
+        if v is not None and r.get("profile_views") != v:
+            r["profile_views"] = v
+            filled += 1
+    if filled:
+        path.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return filled
+
+
 def append_snapshot(path: Path, followers: int) -> tuple[bool, dict]:
     """同じ日付の記録が既にあれば追記しない。戻り値は (追記したか, その日のレコード)。"""
     now = datetime.now(JST)
@@ -88,11 +138,20 @@ def main() -> None:
     followers = fetch_followers(user_id, token)
     print(f"followers_count = {followers}", file=sys.stderr)
 
+    views_by_date = fetch_profile_views(user_id, token)
+    if views_by_date:
+        latest = sorted(views_by_date)[-1]
+        print(f"profile_views = {views_by_date[latest]}（{latest} 時点 / {len(views_by_date)}日分取得）",
+              file=sys.stderr)
+
     if args.dry_run:
         print("[dry-run] ファイルには書き込まない", file=sys.stderr)
         return
 
     written, record = append_snapshot(args.out, followers)
+    filled = merge_profile_views(args.out, views_by_date)
+    if filled:
+        print(f"[ok] プロフィール表示を{filled}日分反映", file=sys.stderr)
     if written:
         print(f"[ok] 追記: {record['date']} -> {record['followers']}", file=sys.stderr)
     else:
