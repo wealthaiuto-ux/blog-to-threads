@@ -1,0 +1,90 @@
+name: Refresh Threads token
+
+# 【2026-08-12 追加】2026-06-08 に登録したトークンが 08-06 に失効し、
+# 投稿ジョブが 6 日間まるごと死んでいた。原因は「60日で切れるものを1回入れて放置」。
+# 二度と黙って止まらないよう、毎週日曜に前倒しで更新しておく。
+#
+# 動作は Secrets の GH_PAT の有無で変わる:
+#   GH_PAT あり → トークンを更新して Secrets まで自動で書き換える（完全放置でよい）
+#   GH_PAT なし → 生存確認だけして、ダメならジョブを失敗させメールを飛ばす
+#                 （復旧は Mac で scripts/refresh_token.py を1回叩く）
+on:
+  schedule:
+    - cron: "0 0 * * 0"   # JST 日曜 09:00
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 期限が切れてからでは更新APIも通らないので、まず生きているかを見る。
+      - name: Health check
+        id: health
+        env:
+          TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+        run: |
+          code=$(curl -s -o /tmp/me.json -w '%{http_code}' \
+            "https://graph.threads.net/v1.0/me?fields=id,username&access_token=$TOKEN")
+          if [ "$code" != "200" ]; then
+            echo "alive=false" >> "$GITHUB_OUTPUT"
+            echo "❌ トークンが無効（HTTP $code）"
+            cat /tmp/me.json
+            exit 1
+          fi
+          grep -q 'chanko_lifehack' /tmp/me.json || { echo "❌ アカウント不一致"; cat /tmp/me.json; exit 1; }
+          echo "alive=true" >> "$GITHUB_OUTPUT"
+          echo "✅ トークン有効"
+
+      # GH_PAT が無い運用では何もせず終わる（生存確認だけで運用できる）。
+      - name: Refresh and store
+        if: steps.health.outputs.alive == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "ℹ️ GH_PAT が未設定のため自動更新はスキップ（トークンは有効なので投稿は動く）"
+            echo "   完全自動にするには GH_PAT を登録してください"
+            exit 0
+          fi
+
+          res=$(curl -s "https://graph.threads.net/v1.0/refresh_access_token?grant_type=th_refresh_token&access_token=$TOKEN")
+          new=$(echo "$res" | python3 -c "import json,sys;print(json.load(sys.stdin).get('access_token',''))")
+          if [ -z "$new" ]; then
+            echo "❌ 更新に失敗: $res"
+            exit 1
+          fi
+          days=$(echo "$res" | python3 -c "import json,sys;print(int(json.load(sys.stdin).get('expires_in',0))//86400)")
+          echo "✅ 新トークン取得（有効期限 約${days}日）"
+
+          # 保存する前に、新しいトークンが本当に通るか確かめる。
+          # ここを飛ばすと、壊れた値で Secrets を上書きして完全に詰む。
+          code=$(curl -s -o /tmp/new.json -w '%{http_code}' \
+            "https://graph.threads.net/v1.0/me?fields=username&access_token=$new")
+          if [ "$code" != "200" ] || ! grep -q 'chanko_lifehack' /tmp/new.json; then
+            echo "❌ 新トークンの疎通確認に失敗。Secretsは書き換えない"
+            cat /tmp/new.json
+            exit 1
+          fi
+
+          gh secret set THREADS_ACCESS_TOKEN --body "$new"
+          echo "✅ Secrets を更新"
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          existing=$(gh issue list --state open --label token --limit 1 --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "既にトークンIssueが開いているので作らない"
+            exit 0
+          fi
+          gh label create token --color D93F0B --description "Threadsトークンの更新が必要" 2>/dev/null || true
+          body=$(printf 'Threadsトークンの自動更新に失敗しました。投稿ジョブもこのままでは止まります。\n\n実行ログ: %s\n\n復旧手順（Macで1回）:\n```\npython3 ~/Documents/dev/blog-to-threads/scripts/refresh_token.py\n```\n失効済みで上が通らない場合は developers.facebook.com で取り直して:\n```\npython3 ~/Documents/dev/blog-to-threads/scripts/refresh_token.py --set "<新しいトークン>"\n```\n' "$RUN_URL")
+          gh issue create --label token \
+            --title "🔑 Threadsトークンの更新が必要です ($(date -u +%Y-%m-%d))" \
+            --body "$body"
