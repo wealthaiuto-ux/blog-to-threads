@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>ブログ→Threads 運用マップ</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --paper: #EDF0F3;
+    --canvas: #F5F7F9;
+    --dotgrid: #D3DBE2;
+    --surface: #FFFFFF;
+    --surface-sunk: #E7ECF0;
+    --line: #CBD4DC;
+    --line-soft: #DDE4EA;
+    --edge: #A9B6C2;
+    --ink: #131B24;
+    --ink-mid: #4A5867;
+    --ink-faint: #74838F;
+    --auto: #2F6390;
+    --auto-bg: #E1EBF4;
+    --human: #96660C;
+    --human-bg: #F7EDD6;
+    --broken: #9C3A2C;
+    --broken-bg: #F7E4E0;
+    --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+    --sans: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", "Noto Sans JP", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, "SF Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E141A; --canvas: #141B22; --dotgrid: #26313B;
+      --surface: #1B242D; --surface-sunk: #151D25;
+      --line: #2E3A45; --line-soft: #263039; --edge: #46545F;
+      --ink: #E7ECF1; --ink-mid: #A8B5C0; --ink-faint: #7C8B98;
+      --auto: #7FB2DD; --auto-bg: #1C2C3A;
+      --human: #DBAC4E; --human-bg: #2F2718;
+      --broken: #E28A78; --broken-bg: #34201C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E141A; --canvas: #141B22; --dotgrid: #26313B;
+    --surface: #1B242D; --surface-sunk: #151D25;
+    --line: #2E3A45; --line-soft: #263039; --edge: #46545F;
+    --ink: #E7ECF1; --ink-mid: #A8B5C0; --ink-faint: #7C8B98;
+    --auto: #7FB2DD; --auto-bg: #1C2C3A;
+    --human: #DBAC4E; --human-bg: #2F2718;
+    --broken: #E28A78; --broken-bg: #34201C;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 2.5rem 1rem 5rem; display: flex; flex-direction: column; gap: 1.4rem; }
+
+  .masthead { display: flex; flex-direction: column; gap: .6rem; }
+  .eyebrow { font-family: var(--mono); font-size: .7rem; letter-spacing: .14em; color: var(--ink-faint); text-transform: uppercase; }
+  h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.7rem, 5.5vw, 2.3rem); line-height: 1.35; margin: 0; text-wrap: balance; }
+  .standfirst { margin: 0; color: var(--ink-mid); font-size: .95rem; max-width: 40em; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; font-size: .78rem; color: var(--ink-mid); }
+  .key { display: inline-flex; align-items: center; gap: .4rem; }
+  .swatch { width: 16px; height: 4px; border-radius: 2px; background: var(--auto); flex: none; }
+  .swatch.h { background: var(--human); }
+  .swatch.b { background: var(--broken); }
+
+  .tabs { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: .2rem; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: none; font-family: inherit; font-size: .88rem; font-weight: 600;
+    color: var(--ink-mid); background: var(--surface);
+    border: 1px solid var(--line-soft); border-radius: 999px;
+    padding: .5rem 1.1rem; cursor: pointer;
+    display: inline-flex; align-items: center; gap: .5rem;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .tab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--edge); flex: none; }
+  .tab.warn .dot { background: var(--broken); }
+  .tab:hover { border-color: var(--line); }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .tab[aria-selected="true"] .dot { background: var(--paper); }
+  .tab[aria-selected="true"].warn .dot { background: var(--broken); }
+  .tab:focus-visible { outline: 2px solid var(--auto); outline-offset: 2px; }
+
+  .panel { display: flex; flex-direction: column; gap: 1rem; }
+  .panel[hidden] { display: none; }
+  .panel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .9rem; }
+  .panel-head h2 { font-family: var(--serif); font-size: 1.2rem; font-weight: 600; margin: 0; }
+  .panel-head .handle { font-family: var(--mono); font-size: .85rem; color: var(--auto); }
+  .panel-head p { margin: 0; width: 100%; font-size: .9rem; color: var(--ink-mid); max-width: 44em; }
+
+  .canvas {
+    position: relative; background: var(--canvas);
+    background-image: radial-gradient(var(--dotgrid) 1px, transparent 1px);
+    background-size: 18px 18px;
+    border: 1px solid var(--line-soft); border-radius: 8px;
+    overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+  }
+  .stage { position: relative; padding: 1.5rem 1.5rem 3.25rem; width: max-content; min-width: 100%; }
+  .edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .edges path { fill: none; stroke: var(--edge); stroke-width: 1.5; transition: stroke .15s, stroke-width .15s; }
+  .edges path.watch { stroke-dasharray: 4 4; }
+  .edges path.gap { stroke: var(--broken); stroke-dasharray: 2 5; stroke-width: 2; }
+  .edges path.lit { stroke: var(--auto); stroke-width: 2.5; }
+  .edges .badge circle { fill: var(--broken); }
+  .edges .badge text { fill: #fff; font-family: var(--mono); font-size: 10px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+
+  .nodes { position: relative; display: grid; grid-auto-columns: 12.5rem; align-items: start; column-gap: 3.25rem; row-gap: 1.25rem; }
+
+  .node {
+    position: relative; background: var(--surface);
+    border: 1px solid var(--line-soft); border-top: 3px solid var(--auto);
+    border-radius: 7px; padding: .7rem .8rem .8rem;
+    display: flex; flex-direction: column; gap: .3rem;
+    box-shadow: 0 1px 2px rgba(19, 27, 36, .06);
+    cursor: pointer; transition: box-shadow .15s, transform .15s, border-color .15s;
+  }
+  .node:hover { box-shadow: 0 4px 12px rgba(19, 27, 36, .12); transform: translateY(-1px); }
+  .node:focus-visible { outline: 2px solid var(--auto); outline-offset: 3px; }
+  .node[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--auto), 0 4px 12px rgba(19, 27, 36, .12); }
+  .node.human { border-top-color: var(--human); background: var(--human-bg); }
+  .node.human[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--human), 0 4px 12px rgba(19, 27, 36, .12); }
+  .node.fault { border-top-color: var(--broken); background: var(--broken-bg); }
+  .node.fault[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--broken), 0 4px 12px rgba(19, 27, 36, .12); }
+  .node.start { border-top-color: var(--edge); background: var(--surface-sunk); }
+
+  .node .meta { display: flex; align-items: center; gap: .4rem; font-family: var(--mono); font-size: .66rem; letter-spacing: .06em; color: var(--auto); text-transform: uppercase; }
+  .node.human .meta { color: var(--human); }
+  .node.fault .meta { color: var(--broken); }
+  .node.start .meta { color: var(--ink-faint); }
+  .node h3 { margin: 0; font-size: .92rem; font-weight: 700; line-height: 1.5; }
+  .node p { margin: 0; font-size: .78rem; line-height: 1.65; color: var(--ink-mid); }
+  .node .when { font-family: var(--mono); font-size: .72rem; font-variant-numeric: tabular-nums; color: var(--ink-faint); line-height: 1.5; }
+
+  /* detail drawer */
+  .detail {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 1rem 1.1rem 1.15rem;
+    display: flex; flex-direction: column; gap: .7rem;
+  }
+  .detail[hidden] { display: none; }
+  .detail-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .detail h3 { margin: 0; font-family: var(--serif); font-size: 1.1rem; font-weight: 600; line-height: 1.5; }
+  .detail .role { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--auto); }
+  .detail .what { margin: 0; font-size: .9rem; color: var(--ink-mid); }
+  .detail .close {
+    flex: none; background: none; border: 1px solid var(--line-soft); border-radius: 999px;
+    width: 1.9rem; height: 1.9rem; cursor: pointer; color: var(--ink-faint);
+    font-size: 1rem; line-height: 1; font-family: inherit;
+  }
+  .detail .close:hover { border-color: var(--line); color: var(--ink); }
+  .detail .close:focus-visible { outline: 2px solid var(--auto); outline-offset: 2px; }
+  .detail-grid { display: grid; grid-template-columns: 6.5rem 1fr; gap: .45rem 1rem; font-size: .82rem; }
+  .detail-grid dt { font-family: var(--mono); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); padding-top: .25rem; }
+  .detail-grid dd { margin: 0; color: var(--ink-mid); }
+  .detail-grid dd ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: .15rem; }
+  .detail-grid code, .impl code { font-family: var(--mono); font-size: .95em; color: var(--ink); background: var(--surface-sunk); padding: .08em .3em; border-radius: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .chip { font-family: var(--mono); font-size: .72rem; background: var(--auto-bg); color: var(--auto); border-radius: 4px; padding: .15rem .5rem; }
+  .chip.none { background: var(--surface-sunk); color: var(--ink-faint); }
+
+  .hint { font-family: var(--mono); font-size: .7rem; color: var(--ink-faint); letter-spacing: .04em; }
+
+  .notes { display: flex; flex-direction: column; gap: .5rem; }
+  .note { background: var(--surface); border: 1px solid var(--line-soft); border-left: 3px solid var(--edge); border-radius: 4px; padding: .7rem .9rem; font-size: .85rem; color: var(--ink-mid); }
+  .note.warn { border-left-color: var(--broken); }
+  .note.ok { border-left-color: var(--auto); }
+  .note b { color: var(--ink); font-size: .88rem; }
+  .note .num { display: inline-flex; align-items: center; justify-content: center; width: 1.15rem; height: 1.15rem; border-radius: 50%; background: var(--broken); color: #fff; font-family: var(--mono); font-size: .68rem; font-weight: 700; margin-right: .4rem; vertical-align: .05em; }
+
+  footer { border-top: 1px solid var(--line); padding-top: 1rem; font-size: .76rem; color: var(--ink-faint); font-family: var(--mono); line-height: 1.7; }
+
+  @media (max-width: 46rem) {
+    .nodes { grid-auto-columns: auto; grid-template-columns: 1fr !important; column-gap: 0; row-gap: 2.5rem; }
+    .nodes > .node { grid-column: 1 !important; grid-row: auto !important; }
+    .stage { width: auto; padding: 1.25rem 1.25rem 2rem; }
+    .canvas { overflow-x: hidden; }
+    .hint.scroll { display: none; }
+    .detail-grid { grid-template-columns: 1fr; gap: .2rem; }
+    .detail-grid dt { padding-top: .5rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tab, .node, .edges path { transition: none; }
+    .node:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">石井雄都 / 発信オペレーション</div>
+    <h1>ブログ→Threads 運用マップ</h1>
+    <p class="standfirst">記事が公開されてから Threads に載るまでの流れを、実際に動いている設定から起こしたものです。カードを押すと、そこで動いているスキル・スクリプト・設定ファイルが出ます。</p>
+    <div class="legend">
+      <span class="key"><i class="swatch"></i>機械が勝手にやる</span>
+      <span class="key"><i class="swatch h"></i>あなたしかできない</span>
+      <span class="key"><i class="swatch b"></i>壊れている・繋がっていない</span>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="運用の線">
+    <button class="tab" role="tab" id="tab-a" aria-controls="panel-a" aria-selected="true"><i class="dot"></i>ブログ発（自動）</button>
+    <button class="tab" role="tab" id="tab-b" aria-controls="panel-b" aria-selected="false"><i class="dot"></i>出版アカウント</button>
+    <button class="tab" role="tab" id="tab-c" aria-controls="panel-c" aria-selected="false"><i class="dot"></i>手動で呼ぶとき</button>
+    <button class="tab warn" role="tab" id="tab-d" aria-controls="panel-d" aria-selected="false"><i class="dot"></i>改善ループの診断</button>
+  </div>
+
+  <!-- ============ A ============ -->
+  <div class="panel" id="panel-a" role="tabpanel" aria-labelledby="tab-a">
+    <div class="panel-head">
+      <h2>ブログの記事を流す線</h2>
+      <span class="handle">@chanko_lifehack</span>
+      <p>chanko06.com に記事を公開すれば、あとは勝手に下書きが並びます。あなたの仕事は Notion で○×を付けることだけ。1日2本まで出ます。</p>
+    </div>
+    <div class="canvas"><div class="stage">
+      <svg class="edges" aria-hidden="true"></svg>
+      <div class="nodes">
+        <article class="node start" data-id="a1" data-to="a2" style="grid-column:1;grid-row:1">
+          <div class="meta">原料</div><h3>ブログ記事を公開</h3><p>chanko06.com。実測系ライフハック。</p>
+        </article>
+        <article class="node" data-id="a2" data-to="a3" style="grid-column:2;grid-row:1">
+          <div class="meta">生成</div><div class="when">毎晩 21:03</div><h3>下書きを3本つくる</h3><p>RSSから記事を選び、Notionに draft で保存。</p>
+        </article>
+        <article class="node human" data-id="a3" data-to="a4" style="grid-column:3;grid-row:1">
+          <div class="meta">承認 / あなた</div><h3>Notion で approved にする</h3><p>ここを通らない限り何も出ない。</p>
+        </article>
+        <article class="node" data-id="a4" data-to="a5" style="grid-column:4;grid-row:1">
+          <div class="meta">投稿</div><div class="when">08:00 / 21:00</div><h3>古い1本から出す</h3><p>1回1本＝1日2本。時刻は0〜50分ずらす。</p>
+        </article>
+        <article class="node" data-id="a5" data-to="a6" style="grid-column:5;grid-row:1">
+          <div class="meta">計測</div><div class="when">毎日 15:00</div><h3>反応を回収する</h3><p>ビュー・いいね・返信を insights.json へ。</p>
+        </article>
+        <article class="node" data-id="a6" style="grid-column:6;grid-row:1">
+          <div class="meta">レビュー</div><div class="when">月曜21:00 / 毎月1日</div><h3>数字を並べる</h3><p>月次は変更案を1つだけ出す。反映は手で。</p>
+        </article>
+        <article class="node" data-id="a7" data-to="a4:watch" style="grid-column:4;grid-row:2">
+          <div class="meta">見張り</div><div class="when">日曜 09:00</div><h3>トークンの生存確認</h3><p>60日で切れる。切れていれば Issue が立つ。</p>
+        </article>
+      </div>
+    </div></div>
+    <div class="hint scroll">← 横にスクロールできます　／　カードを押すと詳細が出ます</div>
+    <div class="detail" hidden></div>
+    <div class="notes">
+      <div class="note ok"><b>8/6〜8/18 は止まっていました。</b> トークン失効で投稿ジョブが毎回落ちていた期間です。8/19に復旧済み。計測データもこの期間は空白です。</div>
+    </div>
+  </div>
+
+  <!-- ============ B ============ -->
+  <div class="panel" id="panel-b" role="tabpanel" aria-labelledby="tab-b" hidden>
+    <div class="panel-head">
+      <h2>出版アカウントの線</h2>
+      <span class="handle">@uto_ai_publisher</span>
+      <p>ブログ発ではありません。毎晩の競合観察から翌日分の案が10本出るので、あなたはスプレッドシートで選ぶ役です。1日3枠。</p>
+    </div>
+    <div class="canvas"><div class="stage">
+      <svg class="edges" aria-hidden="true"></svg>
+      <div class="nodes">
+        <article class="node start" data-id="b1" data-to="b2" style="grid-column:1;grid-row:1">
+          <div class="meta">原料</div><h3>競合の投稿と前夜の実績</h3><p>Watchlistのアカウントを観察。記事は使わない。</p>
+        </article>
+        <article class="node" data-id="b2" data-to="b3" style="grid-column:2;grid-row:1">
+          <div class="meta">分析と生成</div><div class="when">毎晩 21:00</div><h3>案を10本つくる</h3><p>Macの Claude Code が実行。投稿は絶対にしない。</p>
+        </article>
+        <article class="node human" data-id="b3" data-to="b4" style="grid-column:3;grid-row:1">
+          <div class="meta">承認 / あなた</div><h3>シートで approved にする</h3><p>却下した理由は翌晩に読み返される。</p>
+        </article>
+        <article class="node" data-id="b4" data-to="b5" style="grid-column:4;grid-row:1">
+          <div class="meta">投稿</div><div class="when">07:00 / 11:30 / 20:30</div><h3>時刻が来たものを出す</h3><p>承認済みが無い枠は何もせず終わる。</p>
+        </article>
+        <article class="node" data-id="b5" data-to="b2:watch" style="grid-column:5;grid-row:1">
+          <div class="meta">答え合わせ</div><div class="when">翌晩</div><h3>仮説と反応を突き合わせる</h3><p>結果が次の晩の生成に戻る。ここが1周。</p>
+        </article>
+        <article class="node" data-id="b7" data-to="b4:watch" style="grid-column:3;grid-row:2">
+          <div class="meta">見張り</div><div class="when">月曜 09:00</div><h3>トークンの生存確認</h3><p>以前から入っている。</p>
+        </article>
+        <article class="node fault" data-id="b6" data-to="b4:watch" style="grid-column:4;grid-row:2">
+          <div class="meta">故障中</div><div class="when">1日10回</div><h3>旧リポジトリが空回り</h3><p>同じ役目の旧版が残り、毎回落ちている。</p>
+        </article>
+      </div>
+    </div></div>
+    <div class="hint scroll">← 横にスクロールできます　／　カードを押すと詳細が出ます</div>
+    <div class="detail" hidden></div>
+    <div class="notes">
+      <div class="note warn"><b>旧リポジトリを止めるのが妥当です。</b> 投稿しているのは新しい方なので実害は出ていませんが、失敗が常態化すると本当に直すべき失敗が埋もれます。</div>
+    </div>
+  </div>
+
+  <!-- ============ C ============ -->
+  <div class="panel" id="panel-c" role="tabpanel" aria-labelledby="tab-c" hidden>
+    <div class="panel-head">
+      <h2>手動で呼ぶとき</h2>
+      <span class="handle">チャットから</span>
+      <p>上の2本は放っておいても回る線。こちらは「今これを出したい」と思ったときに名前で呼ぶものです。どれも下書きまでで、投稿の前に必ず承認が入ります。</p>
+    </div>
+    <div class="canvas"><div class="stage">
+      <svg class="edges" aria-hidden="true"></svg>
+      <div class="nodes">
+        <article class="node start" data-id="c1" data-to="c2,c3,c4,c5,c6" style="grid-column:1;grid-row:3">
+          <div class="meta">分岐</div><h3>何を出したい？</h3><p>用途でスキルが分かれる。</p>
+        </article>
+        <article class="node" data-id="c2" data-to="c7" style="grid-column:2;grid-row:1">
+          <div class="meta">blog-to-threads</div><h3>記事から告知文</h3><p>実験ログ型・選択理由型・会話型を3本。</p>
+        </article>
+        <article class="node" data-id="c3" data-to="c7" style="grid-column:2;grid-row:2">
+          <div class="meta">threads-deployer</div><h3>図解・5投稿ツリー</h3><p>明示的に指定したときだけ。</p>
+        </article>
+        <article class="node" data-id="c4" data-to="c7" style="grid-column:2;grid-row:3">
+          <div class="meta">daily-post</div><h3>記事なしの短文</h3><p>その日の1本。</p>
+        </article>
+        <article class="node" data-id="c5" data-to="c7" style="grid-column:2;grid-row:4">
+          <div class="meta">uto-threads</div><h3>出版アカウント用</h3><p>AI×Kindleの実況。</p>
+        </article>
+        <article class="node" data-id="c6" data-to="c7" style="grid-column:2;grid-row:5">
+          <div class="meta">manelite-threads</div><h3>資産形成用</h3><p>制度とお金の考え方。</p>
+        </article>
+        <article class="node human" data-id="c7" data-to="c8" style="grid-column:3;grid-row:3">
+          <div class="meta">承認 / あなた</div><h3>読んで出すか決める</h3><p>スキル側は保存も投稿もしない。</p>
+        </article>
+        <article class="node" data-id="c8" data-to="c9" style="grid-column:4;grid-row:3">
+          <div class="meta">投稿</div><h3>Threadsへ</h3><p>自動の線とは別に、手で出す。</p>
+        </article>
+        <article class="node" data-id="c9" style="grid-column:5;grid-row:3">
+          <div class="meta">engagement-tracker</div><h3>反応を記録する</h3><p>呼ばないと動かない。</p>
+        </article>
+      </div>
+    </div></div>
+    <div class="hint scroll">← 横にスクロールできます　／　カードを押すと詳細が出ます</div>
+    <div class="detail" hidden></div>
+    <div class="notes">
+      <div class="note"><b>記事の書き手は別系統です。</b> chanko06.com・manelite・note にそれぞれ執筆／リライト／公開QAのスキルがあり、記事ができて初めて上の線が動きます。</div>
+    </div>
+  </div>
+
+  <!-- ============ D ============ -->
+  <div class="panel" id="panel-d" role="tabpanel" aria-labelledby="tab-d" hidden>
+    <div class="panel-head">
+      <h2>改善ループの診断</h2>
+      <span class="handle">なぜ1周しないのか</span>
+      <p>「作る→出す→測る→学ぶ→次の作りが変わる」が1周して初めて改善が積み上がります。実装を読むと、輪は4か所で切れていました。赤い点線が切れている辺です。</p>
+    </div>
+    <div class="canvas"><div class="stage">
+      <svg class="edges" aria-hidden="true"></svg>
+      <div class="nodes">
+        <article class="node" data-id="d1" data-to="d2" style="grid-column:1;grid-row:1">
+          <div class="meta">Plan / 作る</div><h3>型と重みで書く</h3><p>playbook.json の weight が唯一の設定。</p>
+        </article>
+        <article class="node human" data-id="d2" data-to="d3,d1:gap:1" style="grid-column:2;grid-row:1">
+          <div class="meta">Do / あなたが選ぶ</div><h3>承認する・却下する</h3><p>却下がいちばん濃い教師データ。</p>
+        </article>
+        <article class="node" data-id="d3" data-to="d4:gap:2" style="grid-column:3;grid-row:1">
+          <div class="meta">Do / 出す</div><h3>投稿する</h3><p>何型で出したかを記録していない。</p>
+        </article>
+        <article class="node" data-id="d4" data-to="d5:gap:3" style="grid-column:4;grid-row:1">
+          <div class="meta">Check / 測る</div><h3>反応を集める</h3><p>42件。ただし型が0件。</p>
+        </article>
+        <article class="node" data-id="d5" data-to="d1:gap:4" style="grid-column:5;grid-row:1">
+          <div class="meta">Act / 学ぶ</div><h3>月次レビュー</h3><p>提案は出る。反映は手で叩く。</p>
+        </article>
+        <article class="node start" data-id="d6" data-to="d1:gap:5" style="grid-column:2;grid-row:2">
+          <div class="meta">外の情報</div><h3>ブログ側の結果</h3><p>PV・検索順位・収益。今は繋がっていない。</p>
+        </article>
+      </div>
+    </div></div>
+    <div class="hint scroll">← 横にスクロールできます　／　カードを押すと詳細が出ます</div>
+    <div class="detail" hidden></div>
+    <div class="notes">
+      <div class="note warn"><span class="num">1</span><b>却下の理由が戻らない。</b> Notionから読み出しているのは approved だけで、cancelled を読み返す処理がありません（<code>notion_draft.py</code> にあるのは <code>fetch_approved</code> と <code>fetch_oldest_approved</code> のみ）。あなたが「これはダメ」と判断した情報は毎回捨てられています。出版アカウント側には翌晩に読み返す手順があるので、ここは移植できます。</div>
+      <div class="note ok"><span class="num">2</span><b>投稿時に「何型か」を記録していない → 2026-08-19 修正済み。</b> 真因は Notion DB に「型」「テーマ」のプロパティ自体が無かったことでした。生成側は「プロパティがあれば書く」設計なので、エラーも出さずに毎回捨てていました。プロパティを作り、投稿時にログへ運ぶようにしたので、<b>次の投稿から埋まります</b>。</div>
+      <div class="note warn"><span class="num">3</span><b>過去42件の型は復元できませんでした。</b> 本文ノートからの復元を試しましたが、そのノートが書かれ始めたのが 7/22 で、投稿の大半（6/8〜7/21）はそれ以前でした。<b>学習はゼロからの再スタートになります。</b>なお shares は遡って取得でき、42件すべてに入りました。</div>
+      <div class="note warn"><span class="num">4</span><b>学習結果の反映が手動。</b> 月次レビューは提案までで、<code>monthly_review.py --apply</code> を人が叩かないと playbook は変わりません。人の承認を挟む設計自体は正しいのですが、叩き忘れると輪はそこで止まります。</div>
+      <div class="note warn"><span class="num">5</span><b>ブログ側の結果がThreads側に戻らない。</b> どの記事をThreadsに出すかは新着70%・過去30%のランダムで、PVや検索順位、収益は選定に効いていません。反応が良かったテーマの記事を優先する、という当たり前の改善が今はできない状態です。</div>
+      <div class="note ok"><b>2026-08-19 にやったこと。</b> ②③を塞いだうえで、APIで取れるのに取っていなかった <b>shares</b> と <b>プロフィール表示</b> の収集を追加しました。プロフィール表示が入ったことで「投稿ビュー → プロフィール → フォロー」の3段ファネルが見えるようになります。KPIがフォロワーである以上、ここが本丸です。数字を見るダッシュボードも作り、毎日15時の計測ジョブの最後で自動更新されます。</div>
+      <div class="note warn"><b>残っているのは ① ④ ⑤ です。</b> ①（却下理由を戻す）は出版アカウント側の仕組みを移植するだけなので次に安い。④（反映の手動実行）は型データが貯まってから意味を持ちます。⑤（ブログ側の結果を記事選定へ）は効果が大きい一方 Search Console 連携が要るので最後で構いません。</div>
+      <div class="note"><b>出版アカウント側は逆の欠け方をしています。</b> あちらは却下が翌晩戻る仕組みがある一方、反応データの自動収集が未実装（手順書に「P4で実装。それまでSTEP 0.5は見える範囲のみ」と明記）です。片方は数字があるのに判断に使えず、もう片方は判断の型があるのに数字が無い。互いの足りない側を移植するのが、いちばん手数が少ない直し方です。</div>
+    </div>
+  </div>
+
+  <footer>最終確認 2026-08-19 ／ 時刻はすべて日本時間<br>GitHub Actions の設定・定期タスク・スキル定義・スクリプト本体から起こしたものです。</footer>
+</div>
+
+<script>
+(function () {
+  var DETAIL = {
+    a1: { role: "原料", title: "ブログ記事を公開する", what: "chanko06.com に記事が公開されると、翌晩の生成がその記事を拾えるようになります。ここが止まると下流も止まります。",
+      impl: ["chanko06.com（WordPress）", "RSS を毎晩クロール"], skills: ["aio-llmo-blog-writer", "blog-rewriter", "blog-publisher-qa", "blog-next-action"] },
+    a2: { role: "生成", title: "下書きを3本つくる", what: "RSSから記事を1本選び、Claude APIで投稿文を書いて Notion に draft で保存します。直近7日に使った記事は避けます。文章の型と重みは playbook.json だけが決めます。",
+      impl: [".github/workflows/generate-drafts.yml（毎晩 21:03 JST）", "scripts/run_generate.py → crawl_blog / pick_article / fetch_article / generate_post / notion_draft", "設定: data/playbook.json"], skills: ["blog-to-threads"] },
+    a3: { role: "承認 / あなた", title: "Notion で approved にする", what: "唯一のゲートです。approved にしたものだけが投稿されます。0件なら投稿ジョブは何もせず終わります。却下すると cancelled になりますが、その理由は今のところシステムに戻りません。",
+      impl: ["Notion DB「Threadsドラフト (blog-to-threads)」", "ステータス: draft / approved / posted / cancelled"], skills: [] },
+    a4: { role: "投稿", title: "承認済みの一番古い1本を出す", what: "1回の実行で1本なので1日最大2本。自動投稿らしく見えないよう、実際の投稿時刻は0〜50分ランダムに遅らせています。",
+      impl: [".github/workflows/post-thread.yml（08:00 / 21:00 JST）", "scripts/run_post.py → post_threads.py", "手動確認: run_post.py --dry-run"], skills: [] },
+    a5: { role: "計測", title: "反応を回収する", what: "投稿のビュー・いいね・返信・shares を集めて insights.json に貯め、最後にダッシュボードHTMLを生成します。ここが止まると判断材料が消えます。8/6〜8/18 はトークン失効で空白です。",
+      impl: [".github/workflows/collect-metrics.yml（毎日 15:00 JST）", "scripts/collect_insights.py → data/insights.json（42件）", "shares を追加（2026-08-19）", "scripts/build_dashboard.py → dashboard/index.html"], skills: ["engagement-tracker"] },
+    a6: { role: "レビュー", title: "数字を並べる / 月1で変更案を出す", what: "週次は集計だけで判断しません。月次は先月分から変更案を1つだけ出しますが、playbook.json の書き換えは行いません。反映はあなたが手で実行します。",
+      impl: [".github/workflows/review.yml（月曜21:00 / 毎月1日）", "scripts/weekly_review.py・monthly_review.py", "出力: reports/monthly/YYYY-MM.md", "反映: monthly_review.py --apply（手動）"], skills: [] },
+    a7: { role: "見張り", title: "トークンの生存確認", what: "Threadsの長期トークンは60日で切れます。切れていても Threads 側には何も表示されないため、週次で叩いて確認し、死んでいれば GitHub に Issue を立てます。2026年8月19日に追加しました。",
+      impl: [".github/workflows/token-refresh.yml（日曜 09:00 JST）", "scripts/refresh_token.py --set \"<新トークン>\"", "GH_PAT を入れると自動更新まで走る（現在は未設定）"], skills: [] },
+
+    b1: { role: "原料", title: "競合の投稿と前夜の実績", what: "Watchlist に載せたアカウントの公開投稿を取得し、伸びている投稿を刺さり率・伸び速度・返信率で選びます。1晩10件まで、取れなかったものは理由を記録し推測で埋めません。",
+      impl: ["Google Sheets: Daily Watchlist", "Bright Data MCP で公開投稿を取得"], skills: [] },
+    b2: { role: "分析と生成", title: "翌日の案を10本つくる", what: "Macの Claude Code が夜間に実行します。伸びた投稿の構造だけを借りて自分の文脈に変換し、反復防止ゲート（同じ型の連発を止める）を通してから書き込みます。投稿は絶対にしません。",
+      impl: ["定期タスク: threads-pdca-nightly（毎晩 21:00 JST）", "手順書: ~/Documents/work/threads-pdca/ROUTINE.md（v2）", "出力: Post Queue シート + 日次レポート"], skills: ["uto-threads"] },
+    b3: { role: "承認 / あなた", title: "シートで approved にする", what: "承認が唯一のゲートです。draft のままなら投稿されず、予定時刻から6時間以上遅れたものも投稿されません。却下した理由は翌晩の答え合わせで必ず読み返されます。",
+      impl: ["Google Sheets「Post Queue」の status 列", "draft / approved / rejected"], skills: [] },
+    b4: { role: "投稿", title: "時刻が来た承認済みを出す", what: "1日3枠。承認済みが無い枠は何もせず終わります。",
+      impl: ["リポジトリ: threads-poster", ".github/workflows/post.yml（07:00 / 11:30 / 20:30 JST）"], skills: [] },
+    b5: { role: "答え合わせ", title: "仮説と反応を突き合わせる", what: "前夜出した投稿について、立てた仮説と実際の反応を照合し、却下された案の理由も読み直して次の生成に反映します。ただし反応データの自動収集は未実装で、今は見える範囲だけの照合です。",
+      impl: ["ROUTINE.md の STEP 0.5", "LATENT-NEEDS.md を更新", "自動収集は P4 として未着手"], skills: [] },
+    b6: { role: "故障中", title: "旧リポジトリが空回りしている", what: "同じアカウント向けの旧版が消されずに残り、1日10回起動しては毎回エラーで落ちています。実際に投稿しているのは新しい方なので実害はありませんが、失敗通知が常態化します。",
+      impl: ["リポジトリ: uto-threads-poster（旧）", ".github/workflows/post-queue.yml（cron 10本）", "エラー: offset-naive と offset-aware の日時比較"], skills: [] },
+    b7: { role: "見張り", title: "トークンの生存確認", what: "こちらは以前から入っています。週次で /me を叩いて生きているか確かめます。",
+      impl: ["threads-poster/.github/workflows/token-check.yml（月曜 09:00 JST）"], skills: [] },
+
+    c1: { role: "分岐", title: "何を出したい？", what: "用途によって呼ぶスキルが変わります。名前を覚えていなくても、やりたいことを言えば振り分けられます。", impl: [], skills: [] },
+    c2: { role: "スキル", title: "記事から告知文をつくる", what: "公開済みの記事から、実験ログ型・選択理由型・会話型の3本を作ります。同じ内容の言い換えにせず、それぞれ単体で読める投稿にします。記事に無い体験や数字は足しません。",
+      impl: ["~/.claude/skills/blog-to-threads/SKILL.md", "外部投稿はしない"], skills: ["blog-to-threads"] },
+    c3: { role: "スキル", title: "図解・5投稿ツリー", what: "インフォグラフィック、または明示的に指定した5投稿ツリーを作ります。通常の告知文は blog-to-threads の担当です。",
+      impl: ["~/.claude/skills/threads-deployer/SKILL.md"], skills: ["threads-deployer"] },
+    c4: { role: "スキル", title: "記事を使わない短文", what: "その日の短い1本。ブログやnoteからの展開ではないときに使います。",
+      impl: ["~/.claude/skills/daily-post/SKILL.md"], skills: ["daily-post"] },
+    c5: { role: "スキル", title: "出版アカウント用の投稿", what: "@uto_ai_publisher 向け。AI×Kindle出版の実況を、実測ベースの投稿型集に沿って書きます。",
+      impl: ["~/.claude/skills/uto-threads/SKILL.md"], skills: ["uto-threads"] },
+    c6: { role: "スキル", title: "資産形成の投稿", what: "manelite 側の専属。制度やお金の考え方を扱います。実測は chanko06、制度は manelite という線引きです。",
+      impl: ["~/.claude/skills/manelite-threads/SKILL.md"], skills: ["manelite-threads"] },
+    c7: { role: "承認 / あなた", title: "読んで出すか決める", what: "スキルはチャット内に下書きを出すだけで、保存も投稿もしません。出すかどうかは毎回あなたが決めます。", impl: [], skills: [] },
+    c8: { role: "投稿", title: "手で出す", what: "自動の線とは別に、承認したものを手で投稿します。", impl: [], skills: [] },
+    c9: { role: "スキル", title: "反応を記録する", what: "検索クリック・PV・商品クリック・ASP成果・承認報酬を分けて記録し、次の優先順位に返します。呼ばないと動かないので、記録が飛びやすいのが弱点です。",
+      impl: ["~/.claude/skills/engagement-tracker/SKILL.md", "手動起動のみ"], skills: ["engagement-tracker"] },
+
+    d1: { role: "Plan", title: "型と重みで書く", what: "どの型をどれくらいの頻度で書くかは playbook.json の weight だけが決めています。生成はこれを読み、月次レビューだけが書き換える約束になっています。",
+      impl: ["data/playbook.json", "scripts/generate_post.py が読む"], skills: ["blog-to-threads"] },
+    d2: { role: "Do", title: "承認する・却下する", what: "却下は「この文章は自分ではない」というあなたの判断で、学習材料としてはいちばん濃い情報です。今はそれが記録されず、次の生成に一切影響しません。",
+      impl: ["Notion のステータス列", "cancelled を読み返す処理は存在しない"], skills: [] },
+    d3: { role: "Do", title: "投稿する", what: "ここで「この投稿は失敗談型・家電テーマ」と一緒に記録しておけば、後で効果を型に紐づけられます。今は記録していないため、投稿した瞬間に型の情報が消えます。",
+      impl: ["scripts/post_threads.py", "post_type / theme を保存していない"], skills: [] },
+    d4: { role: "Check", title: "反応を集める", what: "42件たまっていますが、post_type と theme は全件 null です。数字はあるのに、どの型が効いたのかを言えない状態です。",
+      impl: ["data/insights.json（42件 / 型が入っているもの 0件）"], skills: ["engagement-tracker"] },
+    d5: { role: "Act", title: "月次レビュー", what: "先月分を集計して変更案を1つ出します。ただし型別の集計ができないため、実際の変更履歴は数字ではなく方針判断で書かれています。反映も手動実行が必要です。",
+      impl: ["scripts/monthly_review.py", "reports/monthly/2026-07.md", "反映: --apply を手で叩く"], skills: [] },
+    d6: { role: "外の情報", title: "ブログ側の結果", what: "PV・検索順位・収益はブログ側で取れていますが、どの記事をThreadsに出すかの判断には使われていません。記事選定は新着70%・過去30%のランダムです。",
+      impl: ["scripts/pick_article.py（実績を参照しない）", "Search Console / GA4 は別系統"], skills: ["blog-health-checker", "blog-next-action"] }
+  };
+
+  var tabs = [].slice.call(document.querySelectorAll('.tab'));
+
+  function parseTargets(raw) {
+    return raw.split(',').map(function (t) {
+      var p = t.trim().split(':');
+      return { id: p[0], style: p[1] || '', label: p[2] || '' };
+    });
+  }
+
+  function drawCanvas(canvas) {
+    var svg = canvas.querySelector('svg.edges');
+    var stage = canvas.querySelector('.stage');
+    var layer = canvas.querySelector('.nodes');
+    if (!svg || !layer || !layer.getClientRects().length) return;
+
+    var base = layer.getBoundingClientRect();
+    var sr = stage.getBoundingClientRect();
+    svg.setAttribute('viewBox', '0 0 ' + sr.width + ' ' + sr.height);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var nodes = layer.querySelectorAll('.node');
+    var byId = {};
+    [].forEach.call(nodes, function (n) { byId[n.getAttribute('data-id')] = n; });
+
+    var NS = 'http://www.w3.org/2000/svg';
+    var bottomLane = sr.height - 26;
+
+    [].forEach.call(nodes, function (src) {
+      var raw = src.getAttribute('data-to');
+      if (!raw) return;
+      parseTargets(raw).forEach(function (t) {
+        var dst = byId[t.id];
+        if (!dst) return;
+        var a = src.getBoundingClientRect(), b = dst.getBoundingClientRect();
+        var ax = a.left - sr.left, ay = a.top - sr.top;
+        var bx = b.left - sr.left, by = b.top - sr.top;
+        var d, mid;
+
+        if (bx >= ax + a.width - 4) {                     // 左→右
+          var x1 = ax + a.width, y1 = ay + a.height / 2;
+          var x2 = bx, y2 = by + b.height / 2;
+          var c = Math.max(18, (x2 - x1) / 2);
+          d = 'M' + x1 + ' ' + y1 + ' C' + (x1 + c) + ' ' + y1 + ' ' + (x2 - c) + ' ' + y2 + ' ' + x2 + ' ' + y2;
+          mid = [(x1 + x2) / 2, (y1 + y2) / 2];
+        } else if (bx + b.width <= ax + 4) {              // 右→左は下を回す
+          var sx = ax + a.width / 2, sy = ay + a.height;
+          var tx = bx + b.width / 2, ty = by + b.height;
+          d = 'M' + sx + ' ' + sy + ' L' + sx + ' ' + (bottomLane - 10) +
+              ' Q' + sx + ' ' + bottomLane + ' ' + (sx - 10) + ' ' + bottomLane +
+              ' L' + (tx + 10) + ' ' + bottomLane +
+              ' Q' + tx + ' ' + bottomLane + ' ' + tx + ' ' + (bottomLane - 10) +
+              ' L' + tx + ' ' + ty;
+          mid = [(sx + tx) / 2, bottomLane];
+        } else {                                          // 縦
+          var ux = ax + a.width / 2, uy = ay + a.height;
+          var vx = bx + b.width / 2, vy = by;
+          if (vy < uy) { uy = ay; vy = by + b.height; }
+          var cc = Math.max(14, Math.abs(vy - uy) / 2);
+          var dir = vy > uy ? 1 : -1;
+          d = 'M' + ux + ' ' + uy + ' C' + ux + ' ' + (uy + cc * dir) + ' ' + vx + ' ' + (vy - cc * dir) + ' ' + vx + ' ' + vy;
+          mid = [(ux + vx) / 2, (uy + vy) / 2];
+        }
+
+        var p = document.createElementNS(NS, 'path');
+        p.setAttribute('d', d);
+        if (t.style) p.setAttribute('class', t.style === 'gap' ? 'gap' : 'watch');
+        p.setAttribute('data-src', src.getAttribute('data-id'));
+        p.setAttribute('data-dst', t.id);
+        svg.appendChild(p);
+
+        if (t.label) {
+          var g = document.createElementNS(NS, 'g');
+          g.setAttribute('class', 'badge');
+          var ci = document.createElementNS(NS, 'circle');
+          ci.setAttribute('cx', mid[0]); ci.setAttribute('cy', mid[1]); ci.setAttribute('r', 9);
+          var tx2 = document.createElementNS(NS, 'text');
+          tx2.setAttribute('x', mid[0]); tx2.setAttribute('y', mid[1]);
+          tx2.textContent = t.label;
+          g.appendChild(ci); g.appendChild(tx2);
+          svg.appendChild(g);
+        }
+      });
+    });
+  }
+
+  function drawAll() { document.querySelectorAll('.panel:not([hidden]) .canvas').forEach(drawCanvas); }
+
+  // 非表示タブでは requestAnimationFrame が発火しないので、タイマーも併用する
+  function schedule() {
+    if (window.requestAnimationFrame) requestAnimationFrame(drawAll);
+    setTimeout(drawAll, 60);
+    setTimeout(drawAll, 320);
+  }
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function renderDetail(panel, id) {
+    var box = panel.querySelector('.detail');
+    var d = DETAIL[id];
+    if (!box || !d) return;
+    var impl = d.impl && d.impl.length
+      ? '<ul>' + d.impl.map(function (i) { return '<li><code>' + esc(i) + '</code></li>'; }).join('') + '</ul>'
+      : '<span class="chip none">スクリプトなし（人の判断）</span>';
+    var skills = d.skills && d.skills.length
+      ? d.skills.map(function (s) { return '<span class="chip">' + esc(s) + '</span>'; }).join('')
+      : '<span class="chip none">紐づくスキルなし</span>';
+    box.innerHTML =
+      '<div class="detail-top"><div>' +
+        '<div class="role">' + esc(d.role) + '</div>' +
+        '<h3>' + esc(d.title) + '</h3>' +
+      '</div><button class="close" type="button" aria-label="閉じる">✕</button></div>' +
+      '<p class="what">' + esc(d.what) + '</p>' +
+      '<dl class="detail-grid">' +
+        '<dt>実装</dt><dd class="impl">' + impl + '</dd>' +
+        '<dt>スキル</dt><dd><div class="chips">' + skills + '</div></dd>' +
+      '</dl>';
+    box.hidden = false;
+    box.querySelector('.close').addEventListener('click', function () {
+      box.hidden = true;
+      panel.querySelectorAll('.node[aria-pressed="true"]').forEach(function (n) { n.setAttribute('aria-pressed', 'false'); });
+      clearLit(panel);
+    });
+  }
+
+  function clearLit(panel) {
+    panel.querySelectorAll('.edges path.lit').forEach(function (p) { p.classList.remove('lit'); });
+  }
+
+  function lightEdges(panel, id) {
+    clearLit(panel);
+    panel.querySelectorAll('.edges path').forEach(function (p) {
+      if (p.getAttribute('data-src') === id || p.getAttribute('data-dst') === id) p.classList.add('lit');
+    });
+  }
+
+  document.querySelectorAll('.node').forEach(function (node) {
+    var panel = node.closest('.panel');
+    var id = node.getAttribute('data-id');
+    node.setAttribute('tabindex', '0');
+    node.setAttribute('role', 'button');
+    node.setAttribute('aria-pressed', 'false');
+
+    function open() {
+      var was = node.getAttribute('aria-pressed') === 'true';
+      panel.querySelectorAll('.node').forEach(function (n) { n.setAttribute('aria-pressed', 'false'); });
+      if (was) { panel.querySelector('.detail').hidden = true; clearLit(panel); return; }
+      node.setAttribute('aria-pressed', 'true');
+      renderDetail(panel, id);
+      lightEdges(panel, id);
+    }
+    node.addEventListener('click', open);
+    node.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+    });
+    node.addEventListener('mouseenter', function () { lightEdges(panel, id); });
+    node.addEventListener('mouseleave', function () {
+      var pinned = panel.querySelector('.node[aria-pressed="true"]');
+      if (pinned) lightEdges(panel, pinned.getAttribute('data-id')); else clearLit(panel);
+    });
+  });
+
+  function select(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    schedule();
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { select(t); });
+    t.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      e.preventDefault();
+      var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      next.focus(); select(next);
+    });
+  });
+
+  window.addEventListener('resize', schedule);
+  window.addEventListener('load', schedule);
+  document.addEventListener('visibilitychange', schedule);
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(schedule);
+    document.querySelectorAll('.stage').forEach(function (s) { ro.observe(s); });
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+  schedule();
+})();
+</script>
+</body>
+</html>

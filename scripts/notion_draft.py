@@ -196,6 +196,42 @@ def fetch_oldest_approved() -> dict | None:
     return drafts[0] if drafts else None
 
 
+def fetch_cancelled(limit: int = 20) -> list[dict]:
+    """却下された案を新しい順に取る。
+
+    2026-08-19 追加。承認は読んでいたのに却下は読み捨てていた。
+    「これは自分じゃない」という判断はいちばん濃い教師データなので、
+    生成のプロンプトに戻す。理由が空でも、落ちた本文と型だけで十分参考になる。
+    """
+    res = _request("POST", f"/databases/{_db_id()}/query", {
+        "filter": {"property": "ステータス", "select": {"equals": "cancelled"}},
+        "sorts": [{"property": "生成日時", "direction": "descending"}],
+        "page_size": limit,
+    })
+    out = []
+    for p in res.get("results", []):
+        props = p["properties"]
+
+        def _rt_of(name: str) -> str:
+            items = props.get(name, {}).get("rich_text") or []
+            return "".join(i.get("plain_text", "") for i in items)
+
+        def _sel(name: str):
+            sel = props.get(name, {}).get("select")
+            return sel.get("name") if isinstance(sel, dict) else None
+
+        out.append({
+            "page_id": p["id"],
+            "title": "".join(t.get("plain_text", "") for t in props.get("タイトル", {}).get("title", [])),
+            "text": _rt_of("投稿1"),
+            "reason": _rt_of("却下理由"),
+            "post_type": _sel("型"),
+            "theme": _sel("テーマ"),
+            "created": p.get("created_time", ""),
+        })
+    return out
+
+
 def fetch_neta(limit: int = 5) -> list[dict]:
     """ステータス=ネタ の行を古い順に返す。ゆうとさんがスマホから放り込んだネタ。
 

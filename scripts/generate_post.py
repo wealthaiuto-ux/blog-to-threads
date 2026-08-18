@@ -119,6 +119,35 @@ def check(text: str, article_title: str) -> list[str]:
     return problems
 
 
+REJECTIONS_PATH = Path(__file__).resolve().parent.parent / "data" / "rejections.json"
+
+
+def recent_rejections(post_type: str | None = None, limit: int = 4) -> str:
+    """直近で却下された案を、プロンプトに差し込める形で返す。
+
+    2026-08-19 追加。同じ型で落ちたものを優先して見せる。
+    理由が書かれていなくても「この文章は本人に選ばれなかった」という事実は効くので、
+    理由なしでも入れる。件数は絞る（多く入れると避けることだけに気を取られるため）。
+    """
+    try:
+        rows = json.loads(REJECTIONS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    if not rows:
+        return ""
+
+    same = [r for r in rows if post_type and r.get("post_type") == post_type]
+    picked = (same + [r for r in rows if r not in same])[:limit]
+
+    lines = []
+    for r in picked:
+        body = (r.get("text") or "").strip().replace("\n", " ")[:90]
+        reason = (r.get("reason") or "").strip()
+        head = f"- 【{r.get('post_type') or '型なし'}】{body}…"
+        lines.append(head + (f"\n  → 却下の理由: {reason}" if reason else "\n  → 理由の記入なし（本人が選ばなかった、という事実だけ）"))
+    return "\n".join(lines)
+
+
 def build_prompt(decision: dict, article: dict) -> tuple[str, str]:
     system = f"""{load_constitution()}
 
@@ -194,6 +223,18 @@ AIっぽさの正体は語尾ではなく構造。論点を3つ並べて綺麗�
 - 記事タイトルをそのまま書き写さない。自分の言葉で語り直す
 """
 
+    rej = recent_rejections(decision.get("post_type"))
+    rejection_block = ("""
+---
+
+過去に本人が却下した案（同じ失敗を繰り返さないための参考。真似ないこと）:
+
+""" + rej + """
+
+これらと同じ理由で落ちない書き方にしてください。ただし避けることに気を取られて
+無難にしないこと。避けるべきは指摘された点だけです。
+""") if rej else ""
+
     user = f"""今回の型: 【{decision['post_type']}】
 {decision['type_desc']}
 
@@ -213,7 +254,7 @@ AIっぽさの正体は語尾ではなく構造。論点を3つ並べて綺麗�
 
 この記事の中から「型に合う一点」だけを選んで、Threadsの投稿を1本書いてください。
 記事全体を紹介しようとしないこと。1つのシーン、1つの数字、1つの後悔に絞る。
-
+{rejection_block}
 出力は必ず次の形式にしてください:
 
 1. まず、記事から次の2つを拾って書く（下書きメモ。投稿には使われない）

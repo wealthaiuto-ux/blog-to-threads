@@ -62,6 +62,9 @@ def main() -> None:
     want = {
         "型": {"select": {"options": [{"name": t} for t in TYPES]}},
         "テーマ": {"select": {"options": [{"name": t} for t in THEMES]}},
+        # 2026-08-19 追加。却下した理由を書く欄。空でも構わないが、一言あると
+        # 次の生成が同じ失敗を繰り返さなくなる。
+        "却下理由": {"rich_text": {}},
     }
     missing = {k: v for k, v in want.items() if k not in existing}
     if not missing:

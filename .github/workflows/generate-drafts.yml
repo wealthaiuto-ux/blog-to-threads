@@ -35,6 +35,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      # 生成の前に、本人が却下した案を取り込む。
+      # 「これは自分じゃない」という判断がいちばん濃い教師データなので、
+      # 承認だけ読んで却下を捨てるのをやめる（@uto_ai_publisher 側の仕組みの移植）。
+      - name: Collect rejections
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: |
+          python scripts/collect_rejections.py || true
+
       - name: Generate drafts
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -54,7 +64,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/articles_cache.json data/generated_log.json data/article_themes.json || true
+          git add data/articles_cache.json data/generated_log.json data/article_themes.json data/rejections.json || true
           git diff --cached --quiet || git commit -m "drafts: $(date -u +%Y-%m-%dT%H:%MZ)"
           git push || true
 
