@@ -91,11 +91,19 @@ def merge_profile_views(path: Path, views_by_date: dict[str, int]) -> int:
         return 0
     records = json.loads(path.read_text(encoding="utf-8"))
     filled = 0
-    for r in records:
-        v = views_by_date.get(r.get("date"))
-        if v is not None and r.get("profile_views") != v:
+    by_date = {r.get("date"): r for r in records}
+    for date, v in views_by_date.items():
+        r = by_date.get(date)
+        if r is None:
+            # フォロワー記録が無い日（ジョブが落ちていた期間など）でも、
+            # プロフィール表示だけは残す。捨てると二度と取れない。
+            r = {"date": date}
+            records.append(r)
+            by_date[date] = r
+        if r.get("profile_views") != v:
             r["profile_views"] = v
             filled += 1
+    records.sort(key=lambda r: r.get("date", ""))
     if filled:
         path.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return filled

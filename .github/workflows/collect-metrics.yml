@@ -14,6 +14,10 @@ on:
         description: "true にすると取得済みの投稿も insights を取り直す"
         required: false
         default: "false"
+      backfill_types:
+        description: "true にすると過去投稿の型・テーマを Notion から埋め直す（復旧用・通常はfalse）"
+        required: false
+        default: "false"
 
 jobs:
   collect:
@@ -35,6 +39,15 @@ jobs:
         run: |
           python scripts/snapshot_followers.py
 
+      # 復旧用。投稿時に型・テーマを残していなかった時期のぶんを Notion から埋め直す。
+      # 通常運用では走らない（run_post.py が投稿時に記録するようになったため）。
+      - name: Backfill post types
+        if: github.event.inputs.backfill_types == 'true'
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+        run: |
+          python scripts/backfill_types.py
+
       # 投稿48h経過分の views/likes/replies を回収する。
       # refresh=true にすると取得済みのぶんも取り直す（数字は投稿後も伸び続けるため）。
       - name: Collect post insights
@@ -50,7 +63,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/followers.json data/insights.json || true
+          git add data/followers.json data/insights.json data/posted_log.json || true
           git diff --cached --quiet || git commit -m "metrics: $(date -u +%Y-%m-%dT%H:%MZ)"
           git push || true
 
