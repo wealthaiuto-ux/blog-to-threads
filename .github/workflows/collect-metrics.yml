@@ -45,7 +45,9 @@ jobs:
         if: github.event.inputs.backfill_types == 'true'
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: |
+          python scripts/ensure_notion_props.py
           python scripts/backfill_types.py
 
       # 投稿48h経過分の views/likes/replies を回収する。

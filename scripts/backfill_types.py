@@ -46,6 +46,33 @@ def read_select(props: dict, name: str) -> str | None:
     return sel.get("name") if isinstance(sel, dict) else None
 
 
+def read_note(page_id: str, key: str) -> tuple[str | None, str | None]:
+    """ページ本文の「型: ○○ ／ テーマ: ○○」から拾う。
+
+    Notion DB に「型」「テーマ」のプロパティが無かった時期は、プロパティが空のまま
+    本文ノートにだけ残っている。過去分の復元はこちらが本命。
+    """
+    req = Request(
+        f"{NOTION}/blocks/{page_id}/children?page_size=50",
+        headers={"Authorization": f"Bearer {key}", "Notion-Version": "2022-06-28"},
+    )
+    try:
+        with urlopen(req, timeout=30) as resp:
+            body = json.loads(resp.read())
+    except HTTPError as e:
+        print(f"[ng] blocks {page_id}: {e.code}", file=sys.stderr)
+        return None, None
+
+    import re
+    for block in body.get("results", []):
+        rt = (block.get(block.get("type", ""), {}) or {}).get("rich_text") or []
+        text = "".join(t.get("plain_text", "") for t in rt)
+        m = re.search(r"型[:：]\s*(\S+?)\s*[／/]\s*テーマ[:：]\s*(\S+)", text)
+        if m:
+            return m.group(1), m.group(2)
+    return None, None
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
@@ -78,7 +105,11 @@ def main() -> None:
         props = page.get("properties", {})
         ptype, theme = read_select(props, "型"), read_select(props, "テーマ")
         if not ptype and not theme:
-            print(f"[--] {entry.get('article_title', '')[:26]}: Notion側にも型が無い", file=sys.stderr)
+            # プロパティが無い時期のページは、本文ノートから拾う
+            ptype, theme = read_note(page_id, key)
+            time.sleep(0.35)
+        if not ptype and not theme:
+            print(f"[--] {entry.get('article_title', '')[:26]}: 型が見つからない", file=sys.stderr)
             failed += 1
             continue
 
