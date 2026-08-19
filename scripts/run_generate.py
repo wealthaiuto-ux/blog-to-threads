@@ -42,6 +42,55 @@ def _append_gen_log(entry: dict) -> None:
     GEN_LOG_PATH.write_text(json.dumps(log, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def generate_with_gate(pb: dict, decision: dict, article: dict, n: int = 3) -> dict:
+    """同じ記事で型を変えた案を n 本作り、検査を通ったものから1本選ぶ。
+
+    2026-08-20追加。それまでは1案を作って検査に通った瞬間に採用していたため、
+    「合格ラインぎりぎりの凡庸な案」がそのまま下書きになっていた。
+
+    選び方は「最高得点」ではない。いま勝ち負けの実績データが無いので、点数は
+    形式の整い方しか測れず、それで最適化すると毎回同じような投稿に収束する。
+    そこで、検査を通った案のうち **直近に使っていない型を優先** する。
+    最適化ではなく探索として使う。
+
+    全部落ちたときは、いちばん問題の少ない案を needs_fix として返す（人が直す）。
+    """
+    max_retry = pb.get("rules", {}).get("max_filter_retry", 3)
+    recent = playbook.recent_types(pb.get("rules", {}).get("type_cooldown_days", 3))
+
+    # 候補の型: 最初の決定 + 在庫にある他の型（重みの高い順）。同じ記事で切り口だけ変える
+    types = [decision["post_type"]]
+    for t, v in sorted(pb["types"].items(), key=lambda x: -x[1].get("weight", 0)):
+        if t not in types and len(types) < n:
+            types.append(t)
+
+    passed, fallback = [], None
+    for t in types:
+        d = dict(decision, post_type=t,
+                 type_desc=pb["types"][t]["desc"],
+                 type_example=pb["types"][t].get("example", ""))
+        res = generate_post.generate(d, article, max_retry=max_retry)
+        res["decision"] = d
+        if res["status"] == "draft":
+            passed.append(res)
+        elif fallback is None or len(res["problems"]) < len(fallback["problems"]):
+            fallback = res
+        print(f"[候補] {t}: {res['status']}"
+              f"{' / ' + ' / '.join(res['problems']) if res['problems'] else ''}", file=sys.stderr)
+
+    if not passed:
+        print(f"[gate] {len(types)}案すべて検査に落ちた。最も問題の少ない案を needs_fix で残す",
+              file=sys.stderr)
+        return fallback
+
+    # 直近に使っていない型を優先（同点なら先に生成されたもの）
+    fresh = [r for r in passed if r["decision"]["post_type"] not in recent]
+    chosen = (fresh or passed)[0]
+    print(f"[gate] {len(passed)}/{len(types)}案が合格 → [{chosen['decision']['post_type']}] を採用"
+          f"{'（直近未使用の型）' if fresh else '（全て直近使用済みのため先頭を採用）'}", file=sys.stderr)
+    return chosen
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--count", type=int, default=1, help="生成本数（既定1。1日1本の運用）")
@@ -134,8 +183,11 @@ def main() -> int:
         except SystemExit as e:
             print(f"[skip] 記事本文の取得に失敗（{meta['url']}）: {e}", file=sys.stderr)
             continue
-        result = generate_post.generate(
-            decision, article, max_retry=pb.get("rules", {}).get("max_filter_retry", 3))
+        # 3案作って検査を通ったものから選ぶ（品質ゲート）。
+        # 採用案の型は最初の decision と変わりうるので、以降は decision を差し替えて扱う。
+        result = generate_with_gate(pb, decision, article,
+                                    n=pb.get("rules", {}).get("gate_candidates", 3))
+        decision = result.get("decision", decision)
 
         # リンクを付けるのは一定割合だけ。毎回リンクが付いている状態は、
         # 内容に関係なく「ブログ誘導アカウント」として認識されるため。
