@@ -1,0 +1,67 @@
+name: Deploy dashboard
+
+# ダッシュボードを Cloudflare Pages へ出す。
+#
+# データは collect-metrics が毎日15:00 JSTに作り直す。そのジョブが成功した直後に
+# 走らせることで、「デプロイしたが中身は数日前」を避ける。日付でcronを別に組むと
+# 収集より先に走って古いHTMLを出す事故が起きるため、workflow_run で連結している。
+#
+# 必要なSecret（1回だけ登録）:
+#   CLOUDFLARE_API_TOKEN   … Pages への書き込み権限を持つトークン
+#   CLOUDFLARE_ACCOUNT_ID  … アカウントID
+# どちらも未登録のうちはジョブを飛ばすので、失敗通知でうるさくならない。
+on:
+  workflow_run:
+    workflows: ["Collect Threads Metrics"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # 収集が失敗した回は出さない（古い・壊れたHTMLを載せないため）
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      # workflow_run のSHAは収集ジョブ「開始時点」のもので、収集がコミットした
+      # 最新データを含まない。必ず main の先端を取り直す。
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Check credentials
+        id: check
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$ACCOUNT" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID が未登録のためスキップします"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.check.outputs.ready == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@4 pages deploy dashboard \
+            --project-name threads-dashboard \
+            --branch main \
+            --commit-dirty=true
+
+      # パスワードの前段が外れていないかを毎回確かめる。
+      # 認証なしで 200 が返るなら、それは全世界に中身が見えている状態なので落とす。
+      - name: Verify it is still closed
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          sleep 20
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+            https://threads-dashboard-f4n.pages.dev/)
+          echo "認証なしでのアクセス: HTTP $code"
+          if [ "$code" = "200" ]; then
+            echo "::error::認証が外れています。中身が公開状態です"
+            exit 1
+          fi
