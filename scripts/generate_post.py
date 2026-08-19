@@ -15,6 +15,8 @@ import json
 import os
 import re
 import sys
+import uuid
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -26,6 +28,7 @@ MODEL = "claude-haiku-4-5-20251001"
 
 MAX_LEN = 300
 MIN_LEN = 60
+JST = timezone(timedelta(hours=9))
 
 # 生成物の「下書きメモ」と「投稿本文」を分ける印。
 # メモを書かせた方が投稿の質は上がるが、そのまま出力に混ざると字数を食って全部落ちる。
@@ -420,6 +423,30 @@ def check_reply(text: str) -> list[str]:
     return problems
 
 
+def with_utm(url: str, content: str | None = None) -> str:
+    """記事URLに計測用のUTMを付ける。
+
+    2026-08-20追加。Threads の clicks は「共有したURL」単位でしか返らないため、
+    投稿ごとにURLが違わないと、どの投稿がクリックされたのか分けられない。
+    utm_content を投稿ごとに固有にすることで、URLの違い＝投稿の違いになる。
+
+    既にクエリが付いている記事URLでも壊れないよう、パースして足す。
+    """
+    from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
+    if content is None:
+        content = f"{datetime.now(JST).strftime('%Y%m%d')}_{uuid.uuid4().hex[:6]}"
+    p = urlparse(url)
+    q = dict(parse_qsl(p.query))
+    q.update({
+        "utm_source": "threads",
+        "utm_medium": "organic",
+        "utm_campaign": "chanko_lifehack",
+        "utm_content": content,
+    })
+    return urlunparse(p._replace(query=urlencode(q)))
+
+
 def generate_link_reply(article: dict, root_text: str, max_retry: int = 3) -> str | None:
     """ルート投稿にぶら下げる「リンクを置いておくだけ」のリプを書く。
 
@@ -465,7 +492,7 @@ def generate_link_reply(article: dict, root_text: str, max_retry: int = 3) -> st
         text = call_claude(system, user)
         problems = check_reply(text)
         if not problems:
-            return f"{text}\n{article['url']}"
+            return f"{text}\n{with_utm(article['url'])}"
         print(f"[filter] リプ{attempt}回目 不合格: {' / '.join(problems)}", file=sys.stderr)
         user += f"\n\n前回の出力は次の理由で却下されました。直してください: {' / '.join(problems)}"
 

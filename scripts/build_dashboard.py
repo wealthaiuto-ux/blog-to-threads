@@ -142,6 +142,7 @@ def build():
         type_block=group_block(by_type, "型", "投稿するときに型を記録し始めたのは 2026-08-19 です。それ以前の42件は記録が残っておらず、復元もできませんでした。次の投稿から埋まります。"),
         theme_block=group_block(by_theme, "テーマ", "テーマも同じく 2026-08-19 から記録されます。"),
         article_block=article_block(by_article),
+        clicks_block=clicks_block(load("clicks.json", [])),
         ledger=ledger_rows(ok),
         weights=weight_rows(playbook),
     )
@@ -193,6 +194,31 @@ def group_block(groups, kind, empty_msg):
         rows.append(bar_row(k, st.median(v), maxv, len(v), "  中央値"))
     note = "" if enough else f'<p class="caveat">どの{kind}も5件に届いていないため、数字での比較はまだできません。</p>'
     return "".join(rows) + note
+
+
+def clicks_block(records):
+    """URL別のクリック。送客実験が効いているかを見る唯一の自動指標。"""
+    if not records:
+        return ('<div class="empty">クリックの記録は 2026-08-20 に始めました。'
+                '送客投稿を出した翌日から、どのURLが押されたかがここに出ます。</div>')
+    total = {}
+    for r in records:
+        for u, v in (r.get("urls") or {}).items():
+            total[u] = total.get(u, 0) + v
+    days = len(records)
+    if not total:
+        return (f'<div class="empty">観測{days}日ぶん記録していますが、クリックはまだ0件です。'
+                'リンク付き投稿を出していない期間はこうなります。</div>')
+    rows, maxv = [], max(total.values())
+    for u, v in sorted(total.items(), key=lambda x: -x[1])[:10]:
+        # UTMは表示上たたむ。どの投稿かは utm_content で区別している
+        label = u.split("?")[0].replace("https://", "")
+        tag = ""
+        if "utm_content=" in u:
+            tag = "  " + u.split("utm_content=")[1].split("&")[0]
+        rows.append(bar_row(label[:38], v, maxv, days, tag))
+    return "".join(rows) + (f'<p class="caveat">観測{days}日ぶんの合計。'
+                            'クリックはURL単位でしか取れないため、同じ記事でもUTMが違えば別の行になります。</p>')
 
 
 def article_block(by_article):
@@ -357,7 +383,13 @@ TEMPLATE = """<!doctype html>
 </section>
 
 <section>
-  <h2>6. 投稿台帳</h2>
+  <h2>6. 送客の実験結果（URL別クリック）</h2>
+  <p class="lede">リンクは全体の10〜15%だけに付けます。押されたかどうかは、投稿単位ではなくURL単位でしか取れないため、投稿ごとに固有のUTMを振って区別しています。</p>
+  {clicks_block}
+</section>
+
+<section>
+  <h2>7. 投稿台帳</h2>
   <p class="lede">1行1投稿。型の列は 2026-08-19 以降の投稿から埋まります。</p>
   <div class="table-wrap">
     <table>
