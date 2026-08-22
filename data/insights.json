@@ -815,5 +815,43 @@
     "reader_replies": 0,
     "status": "ok",
     "attempts": 0
+  },
+  {
+    "thread_id": "18140253922605933",
+    "article_url": "https://chanko06.com/b-ring-g2-review/",
+    "article_title": "b.ring G2 レビュー｜5ヶ月使った睡眠・電池の本音",
+    "post_type": null,
+    "theme": null,
+    "posted_at": "2026-08-19T13:45:10.430995+00:00",
+    "collected_at": "2026-08-22T06:47:50.007855+00:00",
+    "age_hours": 65.0,
+    "views": 213,
+    "likes": 0,
+    "replies": 0,
+    "reposts": 0,
+    "quotes": 0,
+    "shares": 0,
+    "reader_replies": 0,
+    "status": "ok",
+    "attempts": 0
+  },
+  {
+    "thread_id": "17878460265624064",
+    "article_url": "https://chanko06.com/octopus-energy-taiken-review/",
+    "article_title": "オクトパスエナジーの評判は怪しい？契約者の口コミ・実体験",
+    "post_type": null,
+    "theme": null,
+    "posted_at": "2026-08-19T23:33:35.478498+00:00",
+    "collected_at": "2026-08-22T06:47:50.007855+00:00",
+    "age_hours": 55.2,
+    "views": 40,
+    "likes": 1,
+    "replies": 0,
+    "reposts": 0,
+    "quotes": 0,
+    "shares": 0,
+    "reader_replies": 0,
+    "status": "ok",
+    "attempts": 0
   }
 ]
