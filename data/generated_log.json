@@ -659,5 +659,27 @@
     "attempts": 2,
     "notion_page_id": "3c29e4c0-5c9c-8188-b353-d3cef2eb1f62",
     "generated_at": "2026-08-20T13:05:20.770898+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/furusato_disaster_prevention_6goods/",
+    "article_title": "ふるさと納税でおすすめしたい防災グッズの返礼品6選！人気最新ランキング！ | ちゃんこ ライフハックブログ",
+    "post_type": "失敗談型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3c49e4c0-5c9c-81af-873d-f69e2697939c",
+    "generated_at": "2026-08-22T12:54:51.901159+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/notta-memo-phone-recording/",
+    "article_title": "Notta Memoで電話録音する使い方｜アプリ・PCで確認",
+    "post_type": "逆張り型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3c49e4c0-5c9c-81c1-b8b5-e5266b895b04",
+    "generated_at": "2026-08-22T12:55:28.961854+00:00"
   }
 ]
