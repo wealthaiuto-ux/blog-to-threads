@@ -872,5 +872,43 @@
     "reader_replies": 1,
     "status": "ok",
     "attempts": 0
+  },
+  {
+    "thread_id": "18109065596009122",
+    "article_url": "https://chanko06.com/zehitomo-aircon-review/",
+    "article_title": "ゼヒトモの評判は怪しい？エアコン工事費18万8,650円の口コミ",
+    "post_type": null,
+    "theme": null,
+    "posted_at": "2026-08-21T13:00:09.005051+00:00",
+    "collected_at": "2026-08-24T07:07:31.372667+00:00",
+    "age_hours": 66.1,
+    "views": 1981,
+    "likes": 2,
+    "replies": 0,
+    "reposts": 0,
+    "quotes": 0,
+    "shares": 0,
+    "reader_replies": 0,
+    "status": "ok",
+    "attempts": 0
+  },
+  {
+    "thread_id": "18367439965243496",
+    "article_url": "https://chanko06.com/kantakun-filter-cleaning/",
+    "article_title": "乾太くんのフィルター掃除は毎回必要？RDT-93なら約1分",
+    "post_type": null,
+    "theme": null,
+    "posted_at": "2026-08-21T23:43:56.834738+00:00",
+    "collected_at": "2026-08-24T07:07:31.372667+00:00",
+    "age_hours": 55.4,
+    "views": 51,
+    "likes": 0,
+    "replies": 1,
+    "reposts": 0,
+    "quotes": 0,
+    "shares": 0,
+    "reader_replies": 0,
+    "status": "ok",
+    "attempts": 0
   }
 ]
