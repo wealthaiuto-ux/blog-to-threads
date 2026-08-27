@@ -948,5 +948,43 @@
     "reader_replies": 0,
     "status": "ok",
     "attempts": 0
+  },
+  {
+    "thread_id": "18120936877851997",
+    "article_url": "https://chanko06.com/kantakun-demerit/",
+    "article_title": "乾太くんのデメリット5つ｜それでも買い直す理由",
+    "post_type": null,
+    "theme": null,
+    "posted_at": "2026-08-24T23:34:58.703502+00:00",
+    "collected_at": "2026-08-27T17:29:58.805802+00:00",
+    "age_hours": 65.9,
+    "views": 522,
+    "likes": 1,
+    "replies": 1,
+    "reposts": 0,
+    "quotes": 0,
+    "shares": 0,
+    "reader_replies": 0,
+    "status": "ok",
+    "attempts": 0
+  },
+  {
+    "thread_id": "18144190381487641",
+    "article_url": "https://chanko06.com/aircon-online-vs-store/",
+    "article_title": "エアコンはどこで買う？ネット・家電量販店・工事込みの総額比較と注意点 | ちゃんこ ライフハックブログ",
+    "post_type": null,
+    "theme": null,
+    "posted_at": "2026-08-25T12:59:00.779614+00:00",
+    "collected_at": "2026-08-27T17:29:58.805802+00:00",
+    "age_hours": 52.5,
+    "views": 1256,
+    "likes": 1,
+    "replies": 2,
+    "reposts": 0,
+    "quotes": 0,
+    "shares": 0,
+    "reader_replies": 1,
+    "status": "ok",
+    "attempts": 0
   }
 ]
