@@ -813,5 +813,27 @@
     "attempts": 1,
     "notion_page_id": "3ca9e4c0-5c9c-81d4-8d73-dcc36caec27f",
     "generated_at": "2026-08-28T22:13:26.866330+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/electricity-cost-control/",
+    "article_title": "電気代は「固定費」じゃない—元商社マンが家族3人で実践した、コントロールする方法 | ちゃんこ ライフハックブログ",
+    "post_type": "失敗談型",
+    "theme": "電力・お金",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3cb9e4c0-5c9c-81b1-87f7-cac66b059146",
+    "generated_at": "2026-08-29T16:39:52.687651+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/lamdash-palmin-recall/",
+    "article_title": "ラムダッシュ パームイン リコール対象？ES-PV3A交換手順",
+    "post_type": "1コマ型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3cb9e4c0-5c9c-817c-aa0f-cd452bf63409",
+    "generated_at": "2026-08-29T16:40:11.510598+00:00"
   }
 ]
