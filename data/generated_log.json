@@ -835,5 +835,27 @@
     "attempts": 1,
     "notion_page_id": "3cb9e4c0-5c9c-817c-aa0f-cd452bf63409",
     "generated_at": "2026-08-29T16:40:11.510598+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/notta-memo-subscription/",
+    "article_title": "Notta Memoはサブスクなしで使える？月300分の結論",
+    "post_type": "質問型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3cd9e4c0-5c9c-810c-9a27-dc1cfe4d6c0b",
+    "generated_at": "2026-08-31T19:05:55.717594+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/aircon-10years-replace/",
+    "article_title": "エアコンの寿命は10年？修理か買い替えか判断する7つの基準 | ちゃんこ ライフハックブログ",
+    "post_type": "1コマ型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3cd9e4c0-5c9c-8125-8ee8-c53ba8237cd7",
+    "generated_at": "2026-08-31T19:06:19.895361+00:00"
   }
 ]
