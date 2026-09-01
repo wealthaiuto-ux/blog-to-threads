@@ -151,5 +151,15 @@
     "followers": 36,
     "fetched_at": "2026-08-30T20:37:43.606020+09:00",
     "profile_views": 8
+  },
+  {
+    "date": "2026-08-31",
+    "profile_views": 36
+  },
+  {
+    "date": "2026-09-01",
+    "followers": 36,
+    "fetched_at": "2026-09-01T20:24:31.522919+09:00",
+    "profile_views": 13
   }
 ]
