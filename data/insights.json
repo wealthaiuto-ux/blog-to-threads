@@ -1062,5 +1062,43 @@
     "reader_replies": 0,
     "status": "ok",
     "attempts": 0
+  },
+  {
+    "thread_id": "17987003028022966",
+    "article_url": "https://chanko06.com/chanko06-com-mytrex-hiho-mist-kids/",
+    "article_title": "子どものシャワー嫌い対策｜HIHOミストモードが効いた3つの理由【パパ目線レビュー】 | ちゃんこ ライフハックブログ",
+    "post_type": "逆張り型",
+    "theme": "住まい",
+    "posted_at": "2026-08-30T16:51:24.107802+00:00",
+    "collected_at": "2026-09-02T10:58:08.245416+00:00",
+    "age_hours": 66.1,
+    "views": 65,
+    "likes": 0,
+    "replies": 0,
+    "reposts": 0,
+    "quotes": 0,
+    "shares": 0,
+    "reader_replies": 0,
+    "status": "ok",
+    "attempts": 0
+  },
+  {
+    "thread_id": "18480095821129774",
+    "article_url": "https://chanko06.com/mytrex-showerhead-review/",
+    "article_title": "マイトレックスシャワーヘッド2年レビュー｜子育てパパの本音 | ちゃんこ ライフハックブログ",
+    "post_type": "実測値型",
+    "theme": "住まい",
+    "posted_at": "2026-08-31T01:05:06.714747+00:00",
+    "collected_at": "2026-09-02T10:58:08.245416+00:00",
+    "age_hours": 57.9,
+    "views": 25,
+    "likes": 0,
+    "replies": 0,
+    "reposts": 0,
+    "quotes": 0,
+    "shares": 0,
+    "reader_replies": 0,
+    "status": "ok",
+    "attempts": 0
   }
 ]
