@@ -901,5 +901,27 @@
     "attempts": 1,
     "notion_page_id": "3cf9e4c0-5c9c-81ac-abdc-e29d926d98d4",
     "generated_at": "2026-09-02T16:29:35.220876+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/nell-mattress-hard/",
+    "article_title": "NELLマットレスは硬い？1ヶ月使った正直な感想｜後悔しない人・合わない人 | ちゃんこ ライフハックブログ",
+    "post_type": "実測値型",
+    "theme": "住まい",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3d09e4c0-5c9c-8187-884e-e76a522511e7",
+    "generated_at": "2026-09-03T16:19:29.624932+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/nell-mattress-regret/",
+    "article_title": "ネルマットレスで後悔する？1ヶ月使った私が購入前に確認すべき4点を解説 | ちゃんこ ライフハックブログ",
+    "post_type": "逆張り型",
+    "theme": "住まい",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3d09e4c0-5c9c-81d3-b40e-d7439f2090fa",
+    "generated_at": "2026-09-03T16:19:55.275468+00:00"
   }
 ]
