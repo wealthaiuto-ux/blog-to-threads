@@ -923,5 +923,27 @@
     "attempts": 1,
     "notion_page_id": "3d09e4c0-5c9c-81d3-b40e-d7439f2090fa",
     "generated_at": "2026-09-03T16:19:55.275468+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/notta-memo-battery-life/",
+    "article_title": "Notta Memoの電池持ちは？電池切れの体験と充電対策",
+    "post_type": "質問型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3d19e4c0-5c9c-81f0-9b0c-e748fa2e776a",
+    "generated_at": "2026-09-04T16:15:02.542153+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/octopus_energy_my_conclusion/",
+    "article_title": "オクトパスエナジーの評判は怪しい？契約者の口コミ・実体験",
+    "post_type": "実測値型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3d19e4c0-5c9c-8166-b184-e284d046550a",
+    "generated_at": "2026-09-04T16:15:40.250614+00:00"
   }
 ]
