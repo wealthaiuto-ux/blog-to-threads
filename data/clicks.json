@@ -73,5 +73,12 @@
     "date": "2026-09-04",
     "total": 0,
     "urls": {}
+  },
+  {
+    "date": "2026-09-05",
+    "total": 3,
+    "urls": {
+      "https://curama.jp/?utm_source=afb&utm_medium=affiliate&utm_campaign=B2C_DR_afb&_fsi=5exakz5K": 3
+    }
   }
 ]
