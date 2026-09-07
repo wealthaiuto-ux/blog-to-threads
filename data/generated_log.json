@@ -989,5 +989,27 @@
     "attempts": 2,
     "notion_page_id": "3d39e4c0-5c9c-81fc-a3cb-d340c2a57903",
     "generated_at": "2026-09-06T15:23:53.955200+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/kantakun-features/",
+    "article_title": "乾太くんRDT-93の機能・モード一覧｜花粉・消臭・夜間乾燥の使い分け | ちゃんこ ライフハックブログ",
+    "post_type": "失敗談型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 3,
+    "notion_page_id": "3d49e4c0-5c9c-81cb-8237-fd5f9c2ed9bd",
+    "generated_at": "2026-09-07T17:42:55.852702+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/kantakun-filter-cleaning/",
+    "article_title": "乾太くんのフィルター掃除は毎回必要？RDT-93を週5回使う我が家の手順・ランプの目安",
+    "post_type": "実測値型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3d49e4c0-5c9c-814c-989e-e546a325eb36",
+    "generated_at": "2026-09-07T17:43:16.519881+00:00"
   }
 ]
