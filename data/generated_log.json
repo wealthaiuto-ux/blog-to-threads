@@ -1099,5 +1099,27 @@
     "attempts": 2,
     "notion_page_id": "3d89e4c0-5c9c-81f6-971d-ce0778933cf9",
     "generated_at": "2026-09-11T16:22:45.600516+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/notta-memo-review/",
+    "article_title": "Notta Memoレビュー｜自費購入して電話録音に使った本音",
+    "post_type": "1コマ型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3d99e4c0-5c9c-81a3-bcde-eae72f0f5628",
+    "generated_at": "2026-09-12T15:27:02.546556+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/lamdash-palmin-5blade-vs-lite/",
+    "article_title": "ラムダッシュ パームインの違いを比較｜全6機種、どれを選ぶ？",
+    "post_type": "失敗談型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3d99e4c0-5c9c-81b1-8770-e603547466e0",
+    "generated_at": "2026-09-12T15:27:35.723343+00:00"
   }
 ]
