@@ -1143,5 +1143,27 @@
     "attempts": 1,
     "notion_page_id": "3da9e4c0-5c9c-81ff-844c-eb20c3eb47b7",
     "generated_at": "2026-09-13T16:08:50.700915+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/electricity-cost-control/",
+    "article_title": "電気代は「固定費」じゃない—元商社マンが家族3人で実践した、コントロールする方法 | ちゃんこ ライフハックブログ",
+    "post_type": "向いてない型",
+    "theme": "電力・お金",
+    "has_link": true,
+    "status": "draft",
+    "attempts": 3,
+    "notion_page_id": "3db9e4c0-5c9c-81a3-813f-d82cc914b007",
+    "generated_at": "2026-09-14T18:02:44.749255+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/b-ring-types/",
+    "article_title": "b.ring全種類を比較｜G1S・G2・Pro・b.raceの違いと選び方 | ちゃんこ ライフハックブログ",
+    "post_type": "失敗談型",
+    "theme": "家電",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 1,
+    "notion_page_id": "3db9e4c0-5c9c-815d-a918-ede900971aa1",
+    "generated_at": "2026-09-14T18:03:17.572520+00:00"
   }
 ]
