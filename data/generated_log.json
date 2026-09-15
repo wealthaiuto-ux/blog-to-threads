@@ -1165,5 +1165,27 @@
     "attempts": 1,
     "notion_page_id": "3db9e4c0-5c9c-815d-a918-ede900971aa1",
     "generated_at": "2026-09-14T18:03:17.572520+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/furusato_recommend-5selections/",
+    "article_title": "一人暮らし男性向けふるさと納税おすすめ8選｜自炊で食費を抑えた実例",
+    "post_type": "1コマ型",
+    "theme": "電力・お金",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3dc9e4c0-5c9c-81ce-9fd3-eb8056229329",
+    "generated_at": "2026-09-15T16:50:04.784605+00:00"
+  },
+  {
+    "article_url": "https://chanko06.com/bellababy-review_4points/",
+    "article_title": "Bellababy ベビーベッドの使い心地は？実際の口コミとおすすめポイント4選 | ちゃんこ ライフハックブログ",
+    "post_type": "失敗談型",
+    "theme": "育児",
+    "has_link": false,
+    "status": "draft",
+    "attempts": 2,
+    "notion_page_id": "3dc9e4c0-5c9c-81f6-8cda-ef80c95742e3",
+    "generated_at": "2026-09-15T16:50:37.555359+00:00"
   }
 ]
