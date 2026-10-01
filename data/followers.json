@@ -330,6 +330,12 @@
     "date": "2026-09-30",
     "followers": 33,
     "fetched_at": "2026-09-30T21:14:30.074723+09:00",
+    "profile_views": 33
+  },
+  {
+    "date": "2026-10-01",
+    "followers": 33,
+    "fetched_at": "2026-10-01T21:48:55.805383+09:00",
     "profile_views": 13
   }
 ]
