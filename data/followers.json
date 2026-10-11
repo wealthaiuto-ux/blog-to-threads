@@ -390,6 +390,12 @@
     "date": "2026-10-10",
     "followers": 33,
     "fetched_at": "2026-10-10T21:12:16.311108+09:00",
+    "profile_views": 21
+  },
+  {
+    "date": "2026-10-11",
+    "followers": 33,
+    "fetched_at": "2026-10-11T21:26:33.149570+09:00",
     "profile_views": 9
   }
 ]
